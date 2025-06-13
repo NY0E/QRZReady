@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import { useRouter } from 'next/navigation';
 import { getExamData } from '@/utils/examData';
 import { getUserProgress } from '@/utils/userProgress';
 import { useAuth } from '@/contexts/AuthContext';
@@ -11,6 +12,7 @@ interface ExamPageProps {
 }
 
 export default function ExamPage({ params }: ExamPageProps) {
+  const router = useRouter();
   const { user } = useAuth();
   const [examType, setExamType] = useState<ExamType | null>(null);
   const [questions, setQuestions] = useState<Question[]>([]);
@@ -37,6 +39,7 @@ export default function ExamPage({ params }: ExamPageProps) {
         setQuestions(questionData);
         setUserProgress(progressData);
       } catch (err) {
+        console.error('Error loading data:', err);
         setError(err instanceof Error ? err.message : 'Failed to load questions');
       } finally {
         setLoading(false);
@@ -46,95 +49,133 @@ export default function ExamPage({ params }: ExamPageProps) {
     loadData();
   }, [params]);
 
-  // Calculate comprehensive progress statistics
+  // Calculate comprehensive progress statistics with error handling
   const getProgressStats = () => {
-    const stats = {
-      total: questions.length,
-      neverSeen: 0,
-      learning: 0,      // 1 consecutive correct
-      practicing: 0,    // 2-3 consecutive correct  
-      mastered: 0,      // 4+ consecutive correct
-      totalStudied: 0,
-      averageCorrect: 0,
-      readinessScore: 0
-    };
+    try {
+      const stats = {
+        total: questions.length,
+        neverSeen: 0,
+        learning: 0,      // 1 consecutive correct
+        practicing: 0,    // 2-3 consecutive correct  
+        mastered: 0,      // 4+ consecutive correct
+        totalStudied: 0,
+        averageCorrect: 0,
+        readinessScore: 0
+      };
 
-    let totalCorrectAnswers = 0;
-    let totalAttempts = 0;
+      if (questions.length === 0) return stats;
 
-    questions.forEach(question => {
-      const progress = userProgress[question.id];
-      if (!progress) {
-        stats.neverSeen++;
-      } else {
-        stats.totalStudied++;
-        totalCorrectAnswers += progress.correct;
-        totalAttempts += progress.correct + progress.incorrect;
+      let totalCorrectAnswers = 0;
+      let totalAttempts = 0;
 
-        if (progress.consecutiveCorrect === 1) {
-          stats.learning++;
-        } else if (progress.consecutiveCorrect >= 2 && progress.consecutiveCorrect <= 3) {
-          stats.practicing++;
-        } else if (progress.consecutiveCorrect >= 4) {
-          stats.mastered++;
+      questions.forEach(question => {
+        const progress = userProgress[question.id];
+        if (!progress) {
+          stats.neverSeen++;
+        } else {
+          stats.totalStudied++;
+          totalCorrectAnswers += progress.correct || 0;
+          totalAttempts += (progress.correct || 0) + (progress.incorrect || 0);
+
+          const consecutiveCorrect = progress.consecutiveCorrect || 0;
+          if (consecutiveCorrect === 1) {
+            stats.learning++;
+          } else if (consecutiveCorrect >= 2 && consecutiveCorrect <= 3) {
+            stats.practicing++;
+          } else if (consecutiveCorrect >= 4) {
+            stats.mastered++;
+          }
         }
-      }
-    });
+      });
 
-    // Calculate average accuracy
-    stats.averageCorrect = totalAttempts > 0 ? Math.round((totalCorrectAnswers / totalAttempts) * 100) : 0;
+      // Calculate average accuracy
+      stats.averageCorrect = totalAttempts > 0 ? Math.round((totalCorrectAnswers / totalAttempts) * 100) : 0;
 
-    // Calculate exam readiness score (weighted)
-    const masteredWeight = stats.mastered * 4;
-    const practicingWeight = stats.practicing * 2;
-    const learningWeight = stats.learning * 1;
-    const maxPossibleWeight = stats.total * 4;
-    
-    stats.readinessScore = maxPossibleWeight > 0 ? 
-      Math.round(((masteredWeight + practicingWeight + learningWeight) / maxPossibleWeight) * 100) : 0;
+      // Calculate exam readiness score (weighted)
+      const masteredWeight = stats.mastered * 4;
+      const practicingWeight = stats.practicing * 2;
+      const learningWeight = stats.learning * 1;
+      const maxPossibleWeight = stats.total * 4;
+      
+      stats.readinessScore = maxPossibleWeight > 0 ? 
+        Math.round(((masteredWeight + practicingWeight + learningWeight) / maxPossibleWeight) * 100) : 0;
 
-    return stats;
+      return stats;
+    } catch (err) {
+      console.error('Error calculating progress stats:', err);
+      return {
+        total: questions.length,
+        neverSeen: questions.length,
+        learning: 0,
+        practicing: 0,
+        mastered: 0,
+        totalStudied: 0,
+        averageCorrect: 0,
+        readinessScore: 0
+      };
+    }
   };
 
-  // Get progress by subelement
+  // Get progress by subelement with error handling
   const getSubelementProgress = () => {
-    const subelements: Record<string, {
-      total: number;
-      neverSeen: number;
-      learning: number;
-      practicing: number;
-      mastered: number;
-      name: string;
-    }> = {};
+    try {
+      const subelements: Record<string, {
+        total: number;
+        neverSeen: number;
+        learning: number;
+        practicing: number;
+        mastered: number;
+        name: string;
+      }> = {};
 
-    questions.forEach(question => {
-      const sub = question.subelement;
-      if (!subelements[sub]) {
-        subelements[sub] = {
-          total: 0,
-          neverSeen: 0,
-          learning: 0,
-          practicing: 0,
-          mastered: 0,
-          name: sub
-        };
-      }
-      
-      subelements[sub].total++;
-      
-      const progress = userProgress[question.id];
-      if (!progress) {
-        subelements[sub].neverSeen++;
-      } else if (progress.consecutiveCorrect === 1) {
-        subelements[sub].learning++;
-      } else if (progress.consecutiveCorrect >= 2 && progress.consecutiveCorrect <= 3) {
-        subelements[sub].practicing++;
-      } else if (progress.consecutiveCorrect >= 4) {
-        subelements[sub].mastered++;
-      }
-    });
+      questions.forEach(question => {
+        const sub = question.subelement || 'Unknown';
+        if (!subelements[sub]) {
+          subelements[sub] = {
+            total: 0,
+            neverSeen: 0,
+            learning: 0,
+            practicing: 0,
+            mastered: 0,
+            name: sub
+          };
+        }
+        
+        subelements[sub].total++;
+        
+        const progress = userProgress[question.id];
+        if (!progress) {
+          subelements[sub].neverSeen++;
+        } else {
+          const consecutiveCorrect = progress.consecutiveCorrect || 0;
+          if (consecutiveCorrect === 1) {
+            subelements[sub].learning++;
+          } else if (consecutiveCorrect >= 2 && consecutiveCorrect <= 3) {
+            subelements[sub].practicing++;
+          } else if (consecutiveCorrect >= 4) {
+            subelements[sub].mastered++;
+          }
+        }
+      });
 
-    return Object.values(subelements).sort((a, b) => a.name.localeCompare(b.name));
+      return Object.values(subelements).sort((a, b) => a.name.localeCompare(b.name));
+    } catch (err) {
+      console.error('Error calculating subelement progress:', err);
+      return [];
+    }
+  };
+
+  // Navigation handlers
+  const handleStartLearning = () => {
+    if (examType) {
+      router.push(`/${examType}/learn`);
+    }
+  };
+
+  const handleStartPractice = () => {
+    if (examType) {
+      router.push(`/${examType}/practice`);
+    }
   };
 
   if (loading) {
@@ -281,7 +322,7 @@ export default function ExamPage({ params }: ExamPageProps) {
         {/* Study Options */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
           <div 
-            onClick={() => window.location.href = `/${examType}/learn`}
+            onClick={handleStartLearning}
             className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-md transition-shadow"
           >
             <h3 className="text-xl font-semibold text-gray-900 mb-2">📚 Adaptive Learning</h3>
@@ -298,7 +339,7 @@ export default function ExamPage({ params }: ExamPageProps) {
           </div>
           
           <div 
-            onClick={() => window.location.href = `/${examType}/practice`}
+            onClick={handleStartPractice}
             className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-md transition-shadow"
           >
             <h3 className="text-xl font-semibold text-gray-900 mb-2">🎯 Practice Test</h3>
@@ -316,46 +357,47 @@ export default function ExamPage({ params }: ExamPageProps) {
         </div>
 
         {/* Subelement Progress Breakdown */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Progress by Topic</h2>
-          <div className="space-y-3">
-            {subelementProgress.map((sub) => {
-              const masteryPercentage = Math.round((sub.mastered / sub.total) * 100);
-              const studiedPercentage = Math.round(((sub.mastered + sub.practicing + sub.learning) / sub.total) * 100);
-              
-              return (
-                <div key={sub.name} className="border border-gray-200 rounded-lg p-4">
-                  <div className="flex justify-between items-center mb-2">
-                    <span className="font-medium text-gray-900">{sub.name}</span>
-                    <div className="text-sm text-gray-600">
-                      {sub.mastered} mastered / {sub.total} total ({masteryPercentage}%)
+        {subelementProgress.length > 0 && (
+          <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-4">Progress by Topic</h2>
+            <div className="space-y-3">
+              {subelementProgress.map((sub) => {
+                const masteryPercentage = sub.total > 0 ? Math.round((sub.mastered / sub.total) * 100) : 0;
+                
+                return (
+                  <div key={sub.name} className="border border-gray-200 rounded-lg p-4">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="font-medium text-gray-900">{sub.name}</span>
+                      <div className="text-sm text-gray-600">
+                        {sub.mastered} mastered / {sub.total} total ({masteryPercentage}%)
+                      </div>
+                    </div>
+                    <div className="w-full bg-gray-200 rounded-full h-2">
+                      <div className="flex h-2 rounded-full overflow-hidden">
+                        <div 
+                          className="bg-green-500"
+                          style={{ width: `${sub.total > 0 ? (sub.mastered / sub.total) * 100 : 0}%` }}
+                        ></div>
+                        <div 
+                          className="bg-yellow-500"
+                          style={{ width: `${sub.total > 0 ? (sub.practicing / sub.total) * 100 : 0}%` }}
+                        ></div>
+                        <div 
+                          className="bg-blue-500"
+                          style={{ width: `${sub.total > 0 ? (sub.learning / sub.total) * 100 : 0}%` }}
+                        ></div>
+                      </div>
+                    </div>
+                    <div className="flex justify-between text-xs text-gray-500 mt-1">
+                      <span>{sub.learning} learning • {sub.practicing} practicing • {sub.mastered} mastered</span>
+                      <span>{sub.neverSeen} not started</span>
                     </div>
                   </div>
-                  <div className="w-full bg-gray-200 rounded-full h-2">
-                    <div className="flex h-2 rounded-full overflow-hidden">
-                      <div 
-                        className="bg-green-500"
-                        style={{ width: `${(sub.mastered / sub.total) * 100}%` }}
-                      ></div>
-                      <div 
-                        className="bg-yellow-500"
-                        style={{ width: `${(sub.practicing / sub.total) * 100}%` }}
-                      ></div>
-                      <div 
-                        className="bg-blue-500"
-                        style={{ width: `${(sub.learning / sub.total) * 100}%` }}
-                      ></div>
-                    </div>
-                  </div>
-                  <div className="flex justify-between text-xs text-gray-500 mt-1">
-                    <span>{sub.learning} learning • {sub.practicing} practicing • {sub.mastered} mastered</span>
-                    <span>{sub.neverSeen} not started</span>
-                  </div>
-                </div>
-              );
-            })}
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </div>
     </div>
   );
