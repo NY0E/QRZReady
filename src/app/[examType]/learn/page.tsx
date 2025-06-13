@@ -13,13 +13,113 @@ interface LearnPageProps {
 export default function LearnPage({ params }: LearnPageProps) {
   const { user } = useAuth();
   const [examType, setExamType] = useState<ExamType | null>(null);
-  const [questions, setQuestions] = useState<Question[]>([]);
+  const [allQuestions, setAllQuestions] = useState<Question[]>([]);
+  const [studySet, setStudySet] = useState<Question[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
   const [showResult, setShowResult] = useState(false);
   const [userProgress, setUserProgress] = useState<UserProgress>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [sessionStats, setSessionStats] = useState({
+    questionsAnswered: 0,
+    correctAnswers: 0
+  });
+
+  // Intelligent study set generation
+  const generateStudySet = (questions: Question[], progress: UserProgress): Question[] => {
+    try {
+      // Categorize questions by learning status
+      const categories = {
+        neverSeen: [] as Question[],
+        needsPractice: [] as Question[],     // 1 consecutive correct
+        needsReview: [] as Question[],       // 2-3 consecutive correct
+        mastered: [] as Question[]           // 4+ consecutive correct
+      };
+
+      questions.forEach(question => {
+        const p = progress[question.id];
+        if (!p || p.consecutiveCorrect === 0) {
+          categories.neverSeen.push(question);
+        } else if (p.consecutiveCorrect === 1) {
+          categories.needsPractice.push(question);
+        } else if (p.consecutiveCorrect >= 2 && p.consecutiveCorrect <= 3) {
+          categories.needsReview.push(question);
+        } else {
+          categories.mastered.push(question);
+        }
+      });
+
+      // Build study set with intelligent priority
+      let studySet: Question[] = [];
+      
+      // Priority 1: Never seen questions (up to 6 slots)
+      const neverSeenToAdd = Math.min(6, categories.neverSeen.length);
+      studySet.push(...categories.neverSeen.slice(0, neverSeenToAdd));
+      
+      // Priority 2: Questions needing practice (fill remaining slots)
+      const remainingSlots = 10 - studySet.length;
+      if (remainingSlots > 0) {
+        const practiceToAdd = Math.min(remainingSlots, categories.needsPractice.length);
+        studySet.push(...categories.needsPractice.slice(0, practiceToAdd));
+      }
+      
+      // Priority 3: Questions needing review (fill remaining slots)
+      const stillRemaining = 10 - studySet.length;
+      if (stillRemaining > 0) {
+        const reviewToAdd = Math.min(stillRemaining, categories.needsReview.length);
+        studySet.push(...categories.needsReview.slice(0, reviewToAdd));
+      }
+      
+      // Priority 4: Include some mastered questions for retention (fill remaining slots)
+      const finalRemaining = 10 - studySet.length;
+      if (finalRemaining > 0) {
+        const masteredToAdd = Math.min(finalRemaining, categories.mastered.length);
+        studySet.push(...categories.mastered.slice(0, masteredToAdd));
+      }
+
+      // If we still don't have 10 questions, add more from any category
+      if (studySet.length < 10) {
+        const allAvailable = [...categories.neverSeen, ...categories.needsPractice, ...categories.needsReview, ...categories.mastered];
+        const needed = 10 - studySet.length;
+        const additional = allAvailable.filter(q => !studySet.includes(q)).slice(0, needed);
+        studySet.push(...additional);
+      }
+
+      // Shuffle to avoid predictable order
+      return studySet.sort(() => Math.random() - 0.5);
+      
+    } catch (error) {
+      console.error('Error generating study set:', error);
+      // Fallback: just return first 10 questions
+      return questions.slice(0, 10);
+    }
+  };
+
+  // Calculate study set statistics
+  const getStudySetStats = () => {
+    const stats = {
+      neverSeen: 0,
+      needsPractice: 0,
+      needsReview: 0,
+      mastered: 0
+    };
+    
+    studySet.forEach(question => {
+      const progress = userProgress[question.id];
+      if (!progress || progress.consecutiveCorrect === 0) {
+        stats.neverSeen++;
+      } else if (progress.consecutiveCorrect === 1) {
+        stats.needsPractice++;
+      } else if (progress.consecutiveCorrect >= 2 && progress.consecutiveCorrect <= 3) {
+        stats.needsReview++;
+      } else {
+        stats.mastered++;
+      }
+    });
+    
+    return stats;
+  };
 
   useEffect(() => {
     async function loadData() {
@@ -28,16 +128,21 @@ export default function LearnPage({ params }: LearnPageProps) {
         const type = resolvedParams.examType as ExamType;
         setExamType(type);
         
-        const questionData = await getExamData(type);
+        const [questionData, progressData] = await Promise.all([
+          getExamData(type),
+          getUserProgress(type)
+        ]);
+        
         if (questionData.length === 0) {
           throw new Error(`No questions found for ${type} exam`);
         }
         
-        // Start with just first 10 questions for simplicity
-        setQuestions(questionData.slice(0, 10));
-        
-        const progressData = await getUserProgress(type);
+        setAllQuestions(questionData);
         setUserProgress(progressData);
+        
+        // Generate initial study set
+        const initialStudySet = generateStudySet(questionData, progressData);
+        setStudySet(initialStudySet);
         
       } catch (err) {
         console.error('Error loading data:', err);
@@ -56,9 +161,15 @@ export default function LearnPage({ params }: LearnPageProps) {
   };
 
   const handleNext = async () => {
-    if (selectedAnswer !== null && examType && questions.length > 0) {
-      const currentQuestion = questions[currentQuestionIndex];
+    if (selectedAnswer !== null && examType && studySet.length > 0) {
+      const currentQuestion = studySet[currentQuestionIndex];
       const isCorrect = selectedAnswer === currentQuestion.correct;
+      
+      // Update session stats
+      setSessionStats(prev => ({
+        questionsAnswered: prev.questionsAnswered + 1,
+        correctAnswers: prev.correctAnswers + (isCorrect ? 1 : 0)
+      }));
       
       // Update progress
       try {
@@ -80,21 +191,36 @@ export default function LearnPage({ params }: LearnPageProps) {
           currentProgress.consecutiveCorrect = 0;
         }
         
-        setUserProgress(prev => ({
-          ...prev,
+        currentProgress.lastSeen = Date.now();
+        
+        const newUserProgress = {
+          ...userProgress,
           [currentQuestion.id]: currentProgress
-        }));
+        };
+        setUserProgress(newUserProgress);
+        
+        // Check if question is now mastered (4+ consecutive correct)
+        if (isCorrect && currentProgress.consecutiveCorrect >= 4) {
+          // Question is mastered! Generate new study set
+          setTimeout(() => {
+            const newStudySet = generateStudySet(allQuestions, newUserProgress);
+            setStudySet(newStudySet);
+            setCurrentQuestionIndex(0); // Reset to beginning of new set
+          }, 1500); // Small delay so user can see the mastery message
+        } else {
+          // Move to next question in current study set
+          setTimeout(() => {
+            setCurrentQuestionIndex((currentQuestionIndex + 1) % studySet.length);
+          }, isCorrect ? 1500 : 2000); // Longer delay for incorrect answers
+        }
         
       } catch (error) {
         console.error('Error updating progress:', error);
+        // Still move to next question even if progress save failed
+        setTimeout(() => {
+          setCurrentQuestionIndex((currentQuestionIndex + 1) % studySet.length);
+        }, 1500);
       }
-    }
-    
-    // Move to next question
-    if (currentQuestionIndex < questions.length - 1) {
-      setCurrentQuestionIndex(currentQuestionIndex + 1);
-    } else {
-      setCurrentQuestionIndex(0); // Loop back to beginning
     }
     
     setSelectedAnswer(null);
@@ -106,7 +232,7 @@ export default function LearnPage({ params }: LearnPageProps) {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading study session...</p>
+          <p className="text-gray-600">Building your personalized study set...</p>
         </div>
       </div>
     );
@@ -129,35 +255,46 @@ export default function LearnPage({ params }: LearnPageProps) {
     );
   }
 
-  if (!examType || questions.length === 0) {
+  if (!examType || studySet.length === 0) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center">
-          <p>No questions available</p>
+        <div className="text-center p-6 bg-blue-50 rounded-lg max-w-md">
+          <h2 className="text-lg font-semibold text-blue-800 mb-2">🎉 Great Progress!</h2>
+          <p className="text-blue-600 mb-4">
+            Generating your next study set based on your learning progress...
+          </p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+          >
+            Continue Studying
+          </button>
         </div>
       </div>
     );
   }
 
-  const currentQuestion = questions[currentQuestionIndex];
+  const currentQuestion = studySet[currentQuestionIndex];
   const progress = userProgress[currentQuestion.id];
   const consecutiveCorrect = progress?.consecutiveCorrect || 0;
   const isCorrect = selectedAnswer === currentQuestion.correct;
+  const studySetStats = getStudySetStats();
 
-  // Simple adaptive difficulty - just like we originally designed
+  // Adaptive difficulty logic
   let availableAnswers: Array<{ text: string; index: number }>;
   let stage: string;
+  let stageColor: string;
 
   if (consecutiveCorrect === 0) {
-    // Stage 1: Only correct answer
     stage = "First Time (1 choice)";
+    stageColor = "text-blue-600";
     availableAnswers = [{
       text: currentQuestion.answers[currentQuestion.correct],
       index: currentQuestion.correct
     }];
   } else if (consecutiveCorrect === 1) {
-    // Stage 2: Correct + 1 random wrong
     stage = "Basic Practice (2 choices)";
+    stageColor = "text-orange-600";
     const wrongAnswers = currentQuestion.answers
       .map((answer, index) => ({ text: answer, index }))
       .filter(answer => answer.index !== currentQuestion.correct);
@@ -167,11 +304,11 @@ export default function LearnPage({ params }: LearnPageProps) {
     availableAnswers = [
       { text: currentQuestion.answers[currentQuestion.correct], index: currentQuestion.correct },
       randomWrong
-    ].sort(() => Math.random() - 0.5); // Shuffle
+    ].sort(() => Math.random() - 0.5);
     
   } else if (consecutiveCorrect <= 3) {
-    // Stage 3: Correct + 2 random wrong
     stage = "Intermediate Practice (3 choices)";
+    stageColor = "text-yellow-600";
     const wrongAnswers = currentQuestion.answers
       .map((answer, index) => ({ text: answer, index }))
       .filter(answer => answer.index !== currentQuestion.correct);
@@ -181,11 +318,11 @@ export default function LearnPage({ params }: LearnPageProps) {
     availableAnswers = [
       { text: currentQuestion.answers[currentQuestion.correct], index: currentQuestion.correct },
       ...randomWrongs
-    ].sort(() => Math.random() - 0.5); // Shuffle
+    ].sort(() => Math.random() - 0.5);
     
   } else {
-    // Stage 4: All 4 choices
     stage = "Mastery Mode (4 choices)";
+    stageColor = "text-green-600";
     availableAnswers = currentQuestion.answers.map((answer, index) => ({
       text: answer,
       index
@@ -202,25 +339,34 @@ export default function LearnPage({ params }: LearnPageProps) {
               {examType} Learn Mode
             </h1>
             <div className="text-sm text-gray-600">
-              Question {currentQuestionIndex + 1} of {questions.length}
+              Question {currentQuestionIndex + 1} of {studySet.length}
             </div>
           </div>
           
+          {/* Study Set Info */}
           <div className="flex justify-between items-center mb-2">
-            <div className="text-sm font-medium text-blue-600">
+            <div className={`text-sm font-medium ${stageColor}`}>
               {stage}
             </div>
             <div className="text-xs text-gray-500">
-              Consecutive Correct: {consecutiveCorrect}
+              Study Set: {studySetStats.neverSeen} new • {studySetStats.needsPractice} practice • {studySetStats.needsReview} review • {studySetStats.mastered} mastered
             </div>
           </div>
           
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${((currentQuestionIndex + 1) / questions.length) * 100}%` }}
+              style={{ width: `${((currentQuestionIndex + 1) / studySet.length) * 100}%` }}
             ></div>
           </div>
+
+          {/* Session Stats */}
+          {sessionStats.questionsAnswered > 0 && (
+            <div className="text-xs text-gray-500 mt-2 text-center">
+              Session: {sessionStats.correctAnswers}/{sessionStats.questionsAnswered} correct 
+              ({Math.round((sessionStats.correctAnswers / sessionStats.questionsAnswered) * 100)}%)
+            </div>
+          )}
         </div>
 
         {/* Question Card */}
@@ -231,6 +377,9 @@ export default function LearnPage({ params }: LearnPageProps) {
               {currentQuestion.refs && (
                 <span className="ml-2">{currentQuestion.refs}</span>
               )}
+            </div>
+            <div className="text-xs text-gray-500">
+              Consecutive: {consecutiveCorrect}
             </div>
           </div>
 
@@ -277,6 +426,7 @@ export default function LearnPage({ params }: LearnPageProps) {
             })}
           </div>
 
+          {/* Result Message with Study Set Progression */}
           {showResult && (
             <div className={`mt-4 p-4 rounded-lg ${isCorrect ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
               <div className="font-medium">
@@ -292,9 +442,14 @@ export default function LearnPage({ params }: LearnPageProps) {
                   Great! Next time this question will have {consecutiveCorrect === 0 ? '2' : consecutiveCorrect === 1 ? '3' : '4'} choices.
                 </div>
               )}
-              {isCorrect && consecutiveCorrect >= 3 && (
+              {isCorrect && consecutiveCorrect === 3 && (
                 <div className="text-sm mt-1 text-green-700">
-                  🎉 You've mastered this question!
+                  🎉 One more correct answer and you'll master this question!
+                </div>
+              )}
+              {isCorrect && consecutiveCorrect >= 4 && (
+                <div className="text-sm mt-1 text-green-700">
+                  🌟 Question mastered! It will be replaced with a new question in your study set.
                 </div>
               )}
             </div>
@@ -320,9 +475,10 @@ export default function LearnPage({ params }: LearnPageProps) {
           )}
         </div>
 
+        {/* User Status */}
         {user && (
           <div className="mt-6 text-center text-sm text-gray-600">
-            Studying as: {user.displayName || user.email} • Studying first 10 questions
+            Studying as: {user.displayName || user.email} • Intelligent Study Set: {studySet.length} questions
           </div>
         )}
       </div>
