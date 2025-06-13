@@ -274,6 +274,17 @@ export default function LearnPage({ params }: LearnPageProps) {
   const isCorrect = selectedAnswer === currentQuestion.correct;
   const studySetStats = getStudySetStats();
 
+// Calculate total mastery progress
+const totalMastered = Object.values(userProgress).filter(p => p?.consecutiveCorrect >= 4).length;
+const masteryPercentage = allQuestions.length > 0 ? Math.round((totalMastered / allQuestions.length) * 100) : 0;
+
+// Get mastery color based on percentage
+const getMasteryColor = () => {
+  if (masteryPercentage >= 75) return "text-green-600";
+  if (masteryPercentage >= 40) return "text-yellow-600";
+  return "text-blue-600";
+};
+  
   // Adaptive difficulty logic
   let availableAnswers: Array<{ text: string; index: number }>;
   let stage: string;
@@ -361,6 +372,17 @@ export default function LearnPage({ params }: LearnPageProps) {
               ({Math.round((sessionStats.correctAnswers / sessionStats.questionsAnswered) * 100)}%)
             </div>
           )}
+
+{/* Overall Mastery Progress */}
+<div className="text-xs mt-2 text-center">
+  <span className={`font-medium ${getMasteryColor()}`}>
+    🌟 {totalMastered}/{allQuestions.length} mastered ({masteryPercentage}%)
+  </span>
+  {masteryPercentage >= 75 && (
+    <span className="ml-2 text-green-600">🎯 Exam Ready!</span>
+  )}
+</div>
+          
         </div>
 
         {/* Question Card */}
