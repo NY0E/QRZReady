@@ -2,67 +2,21 @@
 
 import { useState, useEffect } from 'react';
 import { getExamData } from '@/utils/examData';
-import { getUserProgress, updateUserProgress } from '@/utils/userProgress';
+import { getUserProgress } from '@/utils/userProgress';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Question, ExamType, UserProgress } from '@/types/exam';
 
-interface LearnPageProps {
+interface ExamPageProps {
   params: Promise<{ examType: string }>;
 }
 
-export default function LearnPage({ params }: LearnPageProps) {
+export default function ExamPage({ params }: ExamPageProps) {
   const { user } = useAuth();
   const [examType, setExamType] = useState<ExamType | null>(null);
-  const [allQuestions, setAllQuestions] = useState<Question[]>([]);
-  const [studySet, setStudySet] = useState<Question[]>([]);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [selectedAnswer, setSelectedAnswer] = useState<number | null>(null);
-  const [showResult, setShowResult] = useState(false);
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [userProgress, setUserProgress] = useState<UserProgress>({});
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-
-  // Generate intelligent study set of 10 questions
-  const generateStudySet = (questions: Question[], progress: UserProgress): Question[] => {
-    // Categorize questions by progress level
-    const neverSeen = questions.filter(q => !progress[q.id]);
-    const needsPractice = questions.filter(q => {
-      const p = progress[q.id];
-      return p && p.consecutiveCorrect > 0 && p.consecutiveCorrect < 2;
-    });
-    const needsReview = questions.filter(q => {
-      const p = progress[q.id];
-      return p && p.consecutiveCorrect >= 2 && p.consecutiveCorrect < 4;
-    });
-    const mastered = questions.filter(q => {
-      const p = progress[q.id];
-      return p && p.consecutiveCorrect >= 4;
-    });
-
-    // Build study set with priority order
-    let studySet: Question[] = [];
-    
-    // Priority 1: Never seen questions (up to 10)
-    studySet.push(...neverSeen.slice(0, 10));
-    
-    // Priority 2: Questions needing practice (fill remaining slots)
-    if (studySet.length < 10) {
-      studySet.push(...needsPractice.slice(0, 10 - studySet.length));
-    }
-    
-    // Priority 3: Questions needing review (fill remaining slots)
-    if (studySet.length < 10) {
-      studySet.push(...needsReview.slice(0, 10 - studySet.length));
-    }
-    
-    // Priority 4: Include some mastered questions for retention (fill remaining slots)
-    if (studySet.length < 10) {
-      studySet.push(...mastered.slice(0, 10 - studySet.length));
-    }
-
-    // Shuffle the study set so it's not predictable
-    return studySet.sort(() => Math.random() - 0.5);
-  };
 
   useEffect(() => {
     async function loadData() {
@@ -80,13 +34,8 @@ export default function LearnPage({ params }: LearnPageProps) {
           throw new Error(`No questions found for ${type} exam`);
         }
         
-        setAllQuestions(questionData);
+        setQuestions(questionData);
         setUserProgress(progressData);
-        
-        // Generate initial study set
-        const initialStudySet = generateStudySet(questionData, progressData);
-        setStudySet(initialStudySet);
-        
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load questions');
       } finally {
@@ -97,143 +46,95 @@ export default function LearnPage({ params }: LearnPageProps) {
     loadData();
   }, [params]);
 
-  // Get learning stage and available answers for current question
-  const getCurrentQuestionData = () => {
-    if (studySet.length === 0) return { stage: "", availableAnswers: [], consecutiveCorrect: 0 };
-    
-    const currentQuestion = studySet[currentQuestionIndex];
-    const progress = userProgress[currentQuestion.id];
-    const consecutiveCorrect = progress?.consecutiveCorrect || 0;
-    
-    let stage: string;
-    let availableAnswers: Array<{ text: string; index: number; isCorrect: boolean }>;
-    
-    if (consecutiveCorrect === 0) {
-      stage = "First Time (1 choice)";
-      availableAnswers = [{
-        text: currentQuestion.answers[currentQuestion.correct],
-        index: currentQuestion.correct,
-        isCorrect: true
-      }];
-    } else if (consecutiveCorrect === 1) {
-      stage = "Basic Practice (2 choices)";
-      const wrongAnswers = currentQuestion.answers
-        .map((answer, index) => ({ text: answer, index, isCorrect: index === currentQuestion.correct }))
-        .filter(answer => !answer.isCorrect);
-      
-      const randomWrong = wrongAnswers[Math.floor(Math.random() * wrongAnswers.length)];
-      
-      availableAnswers = [
-        { text: currentQuestion.answers[currentQuestion.correct], index: currentQuestion.correct, isCorrect: true },
-        randomWrong
-      ].sort(() => Math.random() - 0.5);
-      
-    } else if (consecutiveCorrect <= 3) {
-      stage = "Intermediate Practice (3 choices)";
-      const wrongAnswers = currentQuestion.answers
-        .map((answer, index) => ({ text: answer, index, isCorrect: index === currentQuestion.correct }))
-        .filter(answer => !answer.isCorrect);
-      
-      const randomWrongs = wrongAnswers.sort(() => Math.random() - 0.5).slice(0, 2);
-      
-      availableAnswers = [
-        { text: currentQuestion.answers[currentQuestion.correct], index: currentQuestion.correct, isCorrect: true },
-        ...randomWrongs
-      ].sort(() => Math.random() - 0.5);
-      
-    } else {
-      stage = "Mastery Mode (4 choices)";
-      availableAnswers = currentQuestion.answers.map((answer, index) => ({
-        text: answer,
-        index,
-        isCorrect: index === currentQuestion.correct
-      }));
-    }
-    
-    return { stage, availableAnswers, consecutiveCorrect };
-  };
-
-  const handleAnswerSelect = (answerIndex: number) => {
-    setSelectedAnswer(answerIndex);
-    setShowResult(true);
-  };
-
-  const handleNext = async () => {
-    if (selectedAnswer !== null && examType && studySet.length > 0) {
-      const currentQuestion = studySet[currentQuestionIndex];
-      const isCorrect = selectedAnswer === currentQuestion.correct;
-      
-      // Update progress
-      try {
-        await updateUserProgress(examType, currentQuestion.id, isCorrect);
-        
-        // Update local progress state
-        const currentProgress = userProgress[currentQuestion.id] || {
-          correct: 0,
-          incorrect: 0,
-          consecutiveCorrect: 0,
-          lastSeen: Date.now()
-        };
-        
-        if (isCorrect) {
-          currentProgress.correct += 1;
-          currentProgress.consecutiveCorrect += 1;
-        } else {
-          currentProgress.incorrect += 1;
-          currentProgress.consecutiveCorrect = 0;
-        }
-        
-        const newUserProgress = {
-          ...userProgress,
-          [currentQuestion.id]: currentProgress
-        };
-        setUserProgress(newUserProgress);
-        
-        // Check if we need to refresh the study set (if question is mastered)
-        if (currentProgress.consecutiveCorrect >= 4) {
-          // Generate new study set to replace mastered question
-          const newStudySet = generateStudySet(allQuestions, newUserProgress);
-          setStudySet(newStudySet);
-          setCurrentQuestionIndex(0); // Reset to beginning of new set
-        } else {
-          // Move to next question in current study set
-          setCurrentQuestionIndex((currentQuestionIndex + 1) % studySet.length);
-        }
-        
-      } catch (error) {
-        console.error('Error updating progress:', error);
-        // Still move to next question even if progress save failed
-        setCurrentQuestionIndex((currentQuestionIndex + 1) % studySet.length);
-      }
-    }
-    
-    setSelectedAnswer(null);
-    setShowResult(false);
-  };
-
-  // Calculate study set statistics
-  const getStudySetStats = () => {
+  // Calculate comprehensive progress statistics
+  const getProgressStats = () => {
     const stats = {
+      total: questions.length,
       neverSeen: 0,
-      needsPractice: 0,
-      needsReview: 0,
-      mastered: 0
+      learning: 0,      // 1 consecutive correct
+      practicing: 0,    // 2-3 consecutive correct  
+      mastered: 0,      // 4+ consecutive correct
+      totalStudied: 0,
+      averageCorrect: 0,
+      readinessScore: 0
     };
-    
-    studySet.forEach(question => {
+
+    let totalCorrectAnswers = 0;
+    let totalAttempts = 0;
+
+    questions.forEach(question => {
       const progress = userProgress[question.id];
       if (!progress) {
         stats.neverSeen++;
-      } else if (progress.consecutiveCorrect < 2) {
-        stats.needsPractice++;
-      } else if (progress.consecutiveCorrect < 4) {
-        stats.needsReview++;
       } else {
-        stats.mastered++;
+        stats.totalStudied++;
+        totalCorrectAnswers += progress.correct;
+        totalAttempts += progress.correct + progress.incorrect;
+
+        if (progress.consecutiveCorrect === 1) {
+          stats.learning++;
+        } else if (progress.consecutiveCorrect >= 2 && progress.consecutiveCorrect <= 3) {
+          stats.practicing++;
+        } else if (progress.consecutiveCorrect >= 4) {
+          stats.mastered++;
+        }
       }
     });
+
+    // Calculate average accuracy
+    stats.averageCorrect = totalAttempts > 0 ? Math.round((totalCorrectAnswers / totalAttempts) * 100) : 0;
+
+    // Calculate exam readiness score (weighted)
+    const masteredWeight = stats.mastered * 4;
+    const practicingWeight = stats.practicing * 2;
+    const learningWeight = stats.learning * 1;
+    const maxPossibleWeight = stats.total * 4;
     
+    stats.readinessScore = maxPossibleWeight > 0 ? 
+      Math.round(((masteredWeight + practicingWeight + learningWeight) / maxPossibleWeight) * 100) : 0;
+
     return stats;
+  };
+
+  // Get progress by subelement
+  const getSubelementProgress = () => {
+    const subelements: Record<string, {
+      total: number;
+      neverSeen: number;
+      learning: number;
+      practicing: number;
+      mastered: number;
+      name: string;
+    }> = {};
+
+    questions.forEach(question => {
+      const sub = question.subelement;
+      if (!subelements[sub]) {
+        subelements[sub] = {
+          total: 0,
+          neverSeen: 0,
+          learning: 0,
+          practicing: 0,
+          mastered: 0,
+          name: sub
+        };
+      }
+      
+      subelements[sub].total++;
+      
+      const progress = userProgress[question.id];
+      if (!progress) {
+        subelements[sub].neverSeen++;
+      } else if (progress.consecutiveCorrect === 1) {
+        subelements[sub].learning++;
+      } else if (progress.consecutiveCorrect >= 2 && progress.consecutiveCorrect <= 3) {
+        subelements[sub].practicing++;
+      } else if (progress.consecutiveCorrect >= 4) {
+        subelements[sub].mastered++;
+      }
+    });
+
+    return Object.values(subelements).sort((a, b) => a.name.localeCompare(b.name));
   };
 
   if (loading) {
@@ -241,7 +142,7 @@ export default function LearnPage({ params }: LearnPageProps) {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Building your personalized study set...</p>
+          <p className="text-gray-600">Loading exam data and progress...</p>
         </div>
       </div>
     );
@@ -251,7 +152,7 @@ export default function LearnPage({ params }: LearnPageProps) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center p-6 bg-red-50 rounded-lg max-w-md">
-          <h2 className="text-lg font-semibold text-red-800 mb-2">Error Loading Study Session</h2>
+          <h2 className="text-lg font-semibold text-red-800 mb-2">Error Loading Exam Data</h2>
           <p className="text-red-600 mb-4">{error}</p>
           <button 
             onClick={() => window.location.reload()}
@@ -264,181 +165,197 @@ export default function LearnPage({ params }: LearnPageProps) {
     );
   }
 
-  if (!examType || studySet.length === 0) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center p-6 bg-blue-50 rounded-lg max-w-md">
-          <h2 className="text-lg font-semibold text-blue-800 mb-2">🎉 Study Set Complete!</h2>
-          <p className="text-blue-600 mb-4">
-            Congratulations! You've made progress on all available questions. 
-            Generating a new study set...
-          </p>
-          <button 
-            onClick={() => window.location.reload()}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
-          >
-            Continue Studying
-          </button>
-        </div>
-      </div>
-    );
-  }
+  if (!examType) return null;
 
-  const currentQuestion = studySet[currentQuestionIndex];
-  const { stage, availableAnswers, consecutiveCorrect } = getCurrentQuestionData();
-  const studySetStats = getStudySetStats();
-  const isCorrect = selectedAnswer === currentQuestion.correct;
+  const progressStats = getProgressStats();
+  const subelementProgress = getSubelementProgress();
 
-  // Get stage color
-  const getStageColor = () => {
-    if (consecutiveCorrect === 0) return "text-blue-600";
-    if (consecutiveCorrect === 1) return "text-orange-600";
-    if (consecutiveCorrect <= 3) return "text-yellow-600";
-    return "text-green-600";
+  // Get exam requirements
+  const getExamRequirements = () => {
+    switch (examType) {
+      case 'technician':
+      case 'general':
+        return { questionsOnExam: 35, passingScore: 26 };
+      case 'extra':
+        return { questionsOnExam: 50, passingScore: 37 };
+      default:
+        return { questionsOnExam: 35, passingScore: 26 };
+    }
   };
+
+  const examReqs = getExamRequirements();
 
   return (
     <div className="min-h-screen bg-gray-50">
-      <div className="max-w-4xl mx-auto px-4 py-8">
+      <div className="max-w-6xl mx-auto px-4 py-8">
         {/* Header */}
-        <div className="mb-6">
-          <div className="flex justify-between items-center mb-2">
-            <h1 className="text-2xl font-bold text-gray-900 capitalize">
-              {examType} Learn Mode
-            </h1>
-            <div className="text-sm text-gray-600">
-              Question {currentQuestionIndex + 1} of {studySet.length}
+        <div className="text-center mb-8">
+          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 capitalize">
+            {examType} License Exam
+          </h1>
+          <p className="text-lg text-gray-600">
+            {questions.length} questions in official question pool
+          </p>
+        </div>
+
+        {/* Overall Progress Dashboard */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
+          <div className="flex justify-between items-center mb-6">
+            <h2 className="text-xl font-semibold text-gray-900">Your Progress Overview</h2>
+            {user ? (
+              <span className="text-sm text-green-600">✓ Progress synced to your account</span>
+            ) : (
+              <span className="text-sm text-orange-600">⚠ Sign in to sync progress across devices</span>
+            )}
+          </div>
+
+          {/* Progress Statistics */}
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
+            <div className="text-center p-4 bg-blue-50 rounded-lg">
+              <div className="text-2xl font-bold text-blue-600">{progressStats.readinessScore}%</div>
+              <div className="text-sm text-blue-800">Exam Readiness</div>
+            </div>
+            <div className="text-center p-4 bg-green-50 rounded-lg">
+              <div className="text-2xl font-bold text-green-600">{progressStats.mastered}</div>
+              <div className="text-sm text-green-800">Mastered Questions</div>
+            </div>
+            <div className="text-center p-4 bg-yellow-50 rounded-lg">
+              <div className="text-2xl font-bold text-yellow-600">{progressStats.practicing}</div>
+              <div className="text-sm text-yellow-800">Practicing Questions</div>
+            </div>
+            <div className="text-center p-4 bg-gray-50 rounded-lg">
+              <div className="text-2xl font-bold text-gray-600">{progressStats.neverSeen}</div>
+              <div className="text-sm text-gray-800">Not Yet Studied</div>
             </div>
           </div>
-          
-          {/* Study Set Progress */}
-          <div className="flex justify-between items-center mb-2">
-            <div className={`text-sm font-medium ${getStageColor()}`}>
-              {stage}
+
+          {/* Progress Bar */}
+          <div className="mb-4">
+            <div className="flex justify-between text-sm text-gray-600 mb-2">
+              <span>Overall Progress</span>
+              <span>{progressStats.totalStudied} / {progressStats.total} questions studied</span>
             </div>
-            <div className="text-xs text-gray-500">
-              Study Set: {studySetStats.neverSeen} new • {studySetStats.needsPractice} practice • {studySetStats.needsReview} review • {studySetStats.mastered} mastered
+            <div className="w-full bg-gray-200 rounded-full h-3">
+              <div className="flex h-3 rounded-full overflow-hidden">
+                <div 
+                  className="bg-green-500"
+                  style={{ width: `${(progressStats.mastered / progressStats.total) * 100}%` }}
+                ></div>
+                <div 
+                  className="bg-yellow-500"
+                  style={{ width: `${(progressStats.practicing / progressStats.total) * 100}%` }}
+                ></div>
+                <div 
+                  className="bg-blue-500"
+                  style={{ width: `${(progressStats.learning / progressStats.total) * 100}%` }}
+                ></div>
+              </div>
+            </div>
+            <div className="flex justify-between text-xs text-gray-500 mt-1">
+              <span>🟢 Mastered</span>
+              <span>🟡 Practicing</span>
+              <span>🔵 Learning</span>
+              <span>⚪ Not Started</span>
             </div>
           </div>
+
+          {/* Study Statistics */}
+          {progressStats.totalStudied > 0 && (
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-4 border-t border-gray-200">
+              <div className="text-center">
+                <div className="text-lg font-semibold text-gray-900">{progressStats.averageCorrect}%</div>
+                <div className="text-sm text-gray-600">Average Accuracy</div>
+              </div>
+              <div className="text-center">
+                <div className="text-lg font-semibold text-gray-900">{examReqs.questionsOnExam}</div>
+                <div className="text-sm text-gray-600">Questions on Real Exam</div>
+              </div>
+              <div className="text-center">
+                <div className="text-lg font-semibold text-gray-900">{examReqs.passingScore}</div>
+                <div className="text-sm text-gray-600">Needed to Pass</div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Study Options */}
+        <div className="grid md:grid-cols-2 gap-6 mb-8">
+          <div 
+            onClick={() => window.location.href = `/${examType}/learn`}
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-md transition-shadow"
+          >
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">📚 Adaptive Learning</h3>
+            <p className="text-gray-600 mb-4">
+              Smart study sessions that adapt difficulty as you improve. Focus on 10 questions at a time.
+            </p>
+            {progressStats.neverSeen > 0 ? (
+              <div className="text-blue-600 font-medium">Start with {progressStats.neverSeen} new questions →</div>
+            ) : progressStats.learning + progressStats.practicing > 0 ? (
+              <div className="text-yellow-600 font-medium">Continue practicing {progressStats.learning + progressStats.practicing} questions →</div>
+            ) : (
+              <div className="text-green-600 font-medium">Review mastered questions →</div>
+            )}
+          </div>
           
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
-              style={{ width: `${((currentQuestionIndex + 1) / studySet.length) * 100}%` }}
-            ></div>
+          <div 
+            onClick={() => window.location.href = `/${examType}/practice`}
+            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-md transition-shadow"
+          >
+            <h3 className="text-xl font-semibold text-gray-900 mb-2">🎯 Practice Test</h3>
+            <p className="text-gray-600 mb-4">
+              Take a realistic practice exam with proper timing and scoring.
+            </p>
+            {progressStats.readinessScore >= 80 ? (
+              <div className="text-green-600 font-medium">You're ready! Take practice exam →</div>
+            ) : progressStats.readinessScore >= 60 ? (
+              <div className="text-yellow-600 font-medium">Good progress! Try a practice test →</div>
+            ) : (
+              <div className="text-blue-600 font-medium">Build skills first, then practice →</div>
+            )}
           </div>
         </div>
 
-        {/* Question Card */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          {/* Question Header */}
-          <div className="flex justify-between items-start mb-4">
-            <div className="text-sm text-gray-600">
-              <span className="font-medium">{currentQuestion.id}</span>
-              {currentQuestion.refs && (
-                <span className="ml-2">{currentQuestion.refs}</span>
-              )}
-            </div>
-            <div className="text-xs text-gray-500">
-              Consecutive Correct: {consecutiveCorrect}
-            </div>
-          </div>
-
-          {/* Question Text */}
-          <h2 className="text-lg font-medium text-gray-900 mb-6">
-            {currentQuestion.question}
-          </h2>
-
-          {/* Adaptive Answer Choices */}
+        {/* Subelement Progress Breakdown */}
+        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
+          <h2 className="text-xl font-semibold text-gray-900 mb-4">Progress by Topic</h2>
           <div className="space-y-3">
-            {availableAnswers.map((answer, displayIndex) => {
-              const isSelected = selectedAnswer === answer.index;
-              const isCorrectAnswer = answer.isCorrect;
+            {subelementProgress.map((sub) => {
+              const masteryPercentage = Math.round((sub.mastered / sub.total) * 100);
+              const studiedPercentage = Math.round(((sub.mastered + sub.practicing + sub.learning) / sub.total) * 100);
               
-              let buttonClass = "w-full text-left p-4 rounded-lg border transition-all ";
-              
-              if (showResult) {
-                if (isCorrectAnswer) {
-                  buttonClass += "bg-green-100 border-green-500 text-green-800";
-                } else if (isSelected && !isCorrectAnswer) {
-                  buttonClass += "bg-red-100 border-red-500 text-red-800";
-                } else {
-                  buttonClass += "bg-gray-50 border-gray-300 text-gray-600";
-                }
-              } else {
-                if (isSelected) {
-                  buttonClass += "bg-blue-100 border-blue-500 text-blue-800";
-                } else {
-                  buttonClass += "bg-white border-gray-300 text-gray-900 hover:border-blue-500 hover:bg-blue-50";
-                }
-              }
-
               return (
-                <button
-                  key={answer.index}
-                  onClick={() => !showResult && handleAnswerSelect(answer.index)}
-                  disabled={showResult}
-                  className={buttonClass}
-                >
-                  <span className="font-medium">
-                    {String.fromCharCode(65 + displayIndex)}.
-                  </span>
-                  <span className="ml-2">{answer.text}</span>
-                </button>
+                <div key={sub.name} className="border border-gray-200 rounded-lg p-4">
+                  <div className="flex justify-between items-center mb-2">
+                    <span className="font-medium text-gray-900">{sub.name}</span>
+                    <div className="text-sm text-gray-600">
+                      {sub.mastered} mastered / {sub.total} total ({masteryPercentage}%)
+                    </div>
+                  </div>
+                  <div className="w-full bg-gray-200 rounded-full h-2">
+                    <div className="flex h-2 rounded-full overflow-hidden">
+                      <div 
+                        className="bg-green-500"
+                        style={{ width: `${(sub.mastered / sub.total) * 100}%` }}
+                      ></div>
+                      <div 
+                        className="bg-yellow-500"
+                        style={{ width: `${(sub.practicing / sub.total) * 100}%` }}
+                      ></div>
+                      <div 
+                        className="bg-blue-500"
+                        style={{ width: `${(sub.learning / sub.total) * 100}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                  <div className="flex justify-between text-xs text-gray-500 mt-1">
+                    <span>{sub.learning} learning • {sub.practicing} practicing • {sub.mastered} mastered</span>
+                    <span>{sub.neverSeen} not started</span>
+                  </div>
+                </div>
               );
             })}
           </div>
-
-          {/* Result Message with Study Set Progression */}
-          {showResult && (
-            <div className={`mt-4 p-4 rounded-lg ${isCorrect ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
-              <div className="font-medium">
-                {isCorrect ? '✅ Correct!' : '❌ Incorrect'}
-              </div>
-              {!isCorrect && (
-                <div className="text-sm mt-1">
-                  The correct answer is: {currentQuestion.answers[currentQuestion.correct]}
-                </div>
-              )}
-              {isCorrect && consecutiveCorrect < 3 && (
-                <div className="text-sm mt-1 text-green-700">
-                  Great! Next time this question will have {consecutiveCorrect === 0 ? '2' : consecutiveCorrect === 1 ? '3' : '4'} choices.
-                </div>
-              )}
-              {isCorrect && consecutiveCorrect >= 3 && (
-                <div className="text-sm mt-1 text-green-700">
-                  🎉 You've mastered this question! It will be replaced with a new question in your study set.
-                </div>
-              )}
-            </div>
-          )}
         </div>
-
-        {/* Navigation */}
-        <div className="flex justify-between items-center">
-          <button
-            onClick={() => window.history.back()}
-            className="text-gray-600 hover:text-gray-800"
-          >
-            ← Back to {examType} exam
-          </button>
-          
-          {showResult && (
-            <button
-              onClick={handleNext}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
-            >
-              Next Question →
-            </button>
-          )}
-        </div>
-
-        {/* User Status */}
-        {user && (
-          <div className="mt-6 text-center text-sm text-gray-600">
-            Studying as: {user.displayName || user.email} • Study Set: {studySet.length} questions
-          </div>
-        )}
       </div>
     </div>
   );
