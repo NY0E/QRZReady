@@ -202,24 +202,18 @@ export default function LearnPage({ params }: LearnPageProps) {
         // Check if question is now mastered (4+ consecutive correct)
         if (isCorrect && currentProgress.consecutiveCorrect >= 4) {
           // Question is mastered! Generate new study set
-          setTimeout(() => {
-            const newStudySet = generateStudySet(allQuestions, newUserProgress);
-            setStudySet(newStudySet);
-            setCurrentQuestionIndex(0); // Reset to beginning of new set
-          }, 1500); // Small delay so user can see the mastery message
+          const newStudySet = generateStudySet(allQuestions, newUserProgress);
+          setStudySet(newStudySet);
+          setCurrentQuestionIndex(0); // Reset to beginning of new set
         } else {
           // Move to next question in current study set
-          setTimeout(() => {
-            setCurrentQuestionIndex((currentQuestionIndex + 1) % studySet.length);
-          }, isCorrect ? 1500 : 2000); // Longer delay for incorrect answers
+          setCurrentQuestionIndex((currentQuestionIndex + 1) % studySet.length);
         }
         
       } catch (error) {
         console.error('Error updating progress:', error);
         // Still move to next question even if progress save failed
-        setTimeout(() => {
-          setCurrentQuestionIndex((currentQuestionIndex + 1) % studySet.length);
-        }, 1500);
+        setCurrentQuestionIndex((currentQuestionIndex + 1) % studySet.length);
       }
     }
     
