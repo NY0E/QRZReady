@@ -49,6 +49,64 @@ export default function LearnPage({ params }: LearnPageProps) {
     loadData();
   }, [params]);
 
+  // Get learning stage and available answers for current question
+  const getCurrentQuestionData = () => {
+    const currentQuestion = questions[currentQuestionIndex];
+    const progress = userProgress[currentQuestion.id];
+    const consecutiveCorrect = progress?.consecutiveCorrect || 0;
+    
+    let stage: string;
+    let availableAnswers: Array<{ text: string; index: number; isCorrect: boolean }>;
+    
+    if (consecutiveCorrect === 0) {
+      // Stage 1: First Time - Only correct answer
+      stage = "First Time (1 choice)";
+      availableAnswers = [{
+        text: currentQuestion.answers[currentQuestion.correct],
+        index: currentQuestion.correct,
+        isCorrect: true
+      }];
+    } else if (consecutiveCorrect === 1) {
+      // Stage 2: Basic Practice - Correct + 1 random wrong
+      stage = "Basic Practice (2 choices)";
+      const wrongAnswers = currentQuestion.answers
+        .map((answer, index) => ({ text: answer, index, isCorrect: index === currentQuestion.correct }))
+        .filter(answer => !answer.isCorrect);
+      
+      const randomWrong = wrongAnswers[Math.floor(Math.random() * wrongAnswers.length)];
+      
+      availableAnswers = [
+        { text: currentQuestion.answers[currentQuestion.correct], index: currentQuestion.correct, isCorrect: true },
+        randomWrong
+      ].sort(() => Math.random() - 0.5); // Shuffle so correct isn't always first
+      
+    } else if (consecutiveCorrect <= 3) {
+      // Stage 3: Intermediate Practice - Correct + 2 random wrong
+      stage = "Intermediate Practice (3 choices)";
+      const wrongAnswers = currentQuestion.answers
+        .map((answer, index) => ({ text: answer, index, isCorrect: index === currentQuestion.correct }))
+        .filter(answer => !answer.isCorrect);
+      
+      const randomWrongs = wrongAnswers.sort(() => Math.random() - 0.5).slice(0, 2);
+      
+      availableAnswers = [
+        { text: currentQuestion.answers[currentQuestion.correct], index: currentQuestion.correct, isCorrect: true },
+        ...randomWrongs
+      ].sort(() => Math.random() - 0.5); // Shuffle
+      
+    } else {
+      // Stage 4: Mastery Mode - All 4 choices
+      stage = "Mastery Mode (4 choices)";
+      availableAnswers = currentQuestion.answers.map((answer, index) => ({
+        text: answer,
+        index,
+        isCorrect: index === currentQuestion.correct
+      }));
+    }
+    
+    return { stage, availableAnswers, consecutiveCorrect };
+  };
+
   const handleAnswerSelect = (answerIndex: number) => {
     setSelectedAnswer(answerIndex);
     setShowResult(true);
@@ -104,7 +162,7 @@ export default function LearnPage({ params }: LearnPageProps) {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading study session...</p>
+          <p className="text-gray-600">Loading adaptive study session...</p>
         </div>
       </div>
     );
@@ -130,8 +188,16 @@ export default function LearnPage({ params }: LearnPageProps) {
   if (!examType || questions.length === 0) return null;
 
   const currentQuestion = questions[currentQuestionIndex];
-  const currentProgress = userProgress[currentQuestion.id];
+  const { stage, availableAnswers, consecutiveCorrect } = getCurrentQuestionData();
   const isCorrect = selectedAnswer === currentQuestion.correct;
+
+  // Get stage color
+  const getStageColor = () => {
+    if (consecutiveCorrect === 0) return "text-blue-600";
+    if (consecutiveCorrect === 1) return "text-orange-600";
+    if (consecutiveCorrect <= 3) return "text-yellow-600";
+    return "text-green-600";
+  };
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -146,6 +212,17 @@ export default function LearnPage({ params }: LearnPageProps) {
               Question {currentQuestionIndex + 1} of {questions.length}
             </div>
           </div>
+          
+          {/* Learning Stage Indicator */}
+          <div className="flex justify-between items-center mb-2">
+            <div className={`text-sm font-medium ${getStageColor()}`}>
+              {stage}
+            </div>
+            <div className="text-xs text-gray-500">
+              Consecutive Correct: {consecutiveCorrect}
+            </div>
+          </div>
+          
           <div className="w-full bg-gray-200 rounded-full h-2">
             <div 
               className="bg-blue-600 h-2 rounded-full transition-all duration-300"
@@ -164,11 +241,6 @@ export default function LearnPage({ params }: LearnPageProps) {
                 <span className="ml-2">{currentQuestion.refs}</span>
               )}
             </div>
-            {currentProgress && (
-              <div className="text-xs text-gray-500">
-                Correct: {currentProgress.correct} | Consecutive: {currentProgress.consecutiveCorrect}
-              </div>
-            )}
           </div>
 
           {/* Question Text */}
@@ -176,11 +248,11 @@ export default function LearnPage({ params }: LearnPageProps) {
             {currentQuestion.question}
           </h2>
 
-          {/* Answer Choices */}
+          {/* Adaptive Answer Choices */}
           <div className="space-y-3">
-            {currentQuestion.answers.map((answer, index) => {
-              const isSelected = selectedAnswer === index;
-              const isCorrectAnswer = index === currentQuestion.correct;
+            {availableAnswers.map((answer, displayIndex) => {
+              const isSelected = selectedAnswer === answer.index;
+              const isCorrectAnswer = answer.isCorrect;
               
               let buttonClass = "w-full text-left p-4 rounded-lg border transition-all ";
               
@@ -202,21 +274,21 @@ export default function LearnPage({ params }: LearnPageProps) {
 
               return (
                 <button
-                  key={index}
-                  onClick={() => !showResult && handleAnswerSelect(index)}
+                  key={answer.index}
+                  onClick={() => !showResult && handleAnswerSelect(answer.index)}
                   disabled={showResult}
                   className={buttonClass}
                 >
                   <span className="font-medium">
-                    {String.fromCharCode(65 + index)}.
+                    {String.fromCharCode(65 + displayIndex)}.
                   </span>
-                  <span className="ml-2">{answer}</span>
+                  <span className="ml-2">{answer.text}</span>
                 </button>
               );
             })}
           </div>
 
-          {/* Result Message */}
+          {/* Result Message with Stage Progression */}
           {showResult && (
             <div className={`mt-4 p-4 rounded-lg ${isCorrect ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
               <div className="font-medium">
@@ -224,7 +296,17 @@ export default function LearnPage({ params }: LearnPageProps) {
               </div>
               {!isCorrect && (
                 <div className="text-sm mt-1">
-                  The correct answer is {String.fromCharCode(65 + currentQuestion.correct)}: {currentQuestion.answers[currentQuestion.correct]}
+                  The correct answer is: {currentQuestion.answers[currentQuestion.correct]}
+                </div>
+              )}
+              {isCorrect && consecutiveCorrect < 3 && (
+                <div className="text-sm mt-1 text-green-700">
+                  Great! Next time this question will have {consecutiveCorrect === 0 ? '2' : consecutiveCorrect === 1 ? '3' : '4'} choices.
+                </div>
+              )}
+              {isCorrect && consecutiveCorrect >= 3 && (
+                <div className="text-sm mt-1 text-green-700">
+                  🎉 You've mastered this question! It will appear in full exam mode.
                 </div>
               )}
             </div>
