@@ -104,7 +104,7 @@ export default function Home() {
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">🚨 The FCC makes your registration public!</h3>
               <p className="text-gray-600 mb-3">
-                You can protect your privacy (while supporting Hack the Ham) by using a virtual mailbox from iPostal1 when applying for an FRN and licenses.
+                You can protect your privacy (while supporting HacktheHam) by using a virtual mailbox from iPostal1 to apply for your FRN and licenses.
               </p>
               <a 
                 href="https://ipostal1.com/?ref=6716" 
