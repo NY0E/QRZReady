@@ -88,9 +88,9 @@ export default function Home() {
           <h2 className="text-xl font-bold text-gray-900 mb-4">Resources & Links</h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div>
-              <h3 className="font-semibold text-gray-900 mb-2">📡 Learn More About NY0E</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">📡 About NY0E</h3>
               <p className="text-gray-600 mb-3">
-                Visit my homepage for more ham radio projects and technical content.
+                Aside from developing this app, I do other stuff too. Visit my homepage for more ham radio projects, notes, and technical content.
               </p>
               <a 
                 href="https://ny0e.com" 
@@ -104,7 +104,7 @@ export default function Home() {
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">🛡️ Protect Your Privacy</h3>
               <p className="text-gray-600 mb-3">
-                Registering with the FCC makes your information public! Get a virtual mailbox to keep your home address private when applying for an FRN and licenses.
+                🚨 Registering with the FCC makes your information public 🚨 Get a virtual mailbox to keep your home address private when applying for an FRN and licenses.
               </p>
               <a 
                 href="https://ipostal1.com/?ref=6716" 
