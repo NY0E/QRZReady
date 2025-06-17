@@ -10,7 +10,7 @@ export default function Home() {
             Hack The Ham
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 mb-8">
-            Hack your way to Amateur Radio license success with smart memorization techniques
+            Prepare for the FCC's Amateur Radio license exams with smart memorization techniques
           </p>
         </div>
 
@@ -20,7 +20,7 @@ export default function Home() {
             🧠 Memorization-Focused Learning
           </h2>
           <p className="text-blue-800">
-            Ham radio exams test your ability to recall specific answers from memory. This app is designed 
+            Coming Soon - Ham radio exams test your ability to recall specific answers from memory. This app is designed 
             specifically for memorizing the correct answers through proven spaced repetition techniques.
           </p>
         </div>
@@ -56,7 +56,7 @@ export default function Home() {
         {/* How It Works */}
         <div className="max-w-4xl mx-auto mb-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-            How to Hack Your Exam Prep
+            How to Use HackTheHam.com
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="text-center">
@@ -104,7 +104,7 @@ export default function Home() {
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">🛡️ Protect Your Privacy</h3>
               <p className="text-gray-600 mb-3">
-                Get a virtual mailbox to keep your home address private when applying for licenses.
+                Registering with the FCC makes your information public! Get a virtual mailbox to keep your home address private when applying for an FRN and licenses.
               </p>
               <a 
                 href="https://ipostal1.com/?ref=6716" 
