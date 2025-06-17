@@ -102,9 +102,9 @@ export default function Home() {
               </a>
             </div>
             <div>
-              <h3 className="font-semibold text-gray-900 mb-2">🛡️ Protect Your Privacy</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">🚨 The FCC makes your registration public!</h3>
               <p className="text-gray-600 mb-3">
-                🚨 Registering with the FCC makes your information public 🚨 Get a virtual mailbox to keep your home address private when applying for an FRN and licenses.
+                Protect your privacy with a virtual mailbox to keep your home address private when applying for an FRN and licenses.
               </p>
               <a 
                 href="https://ipostal1.com/?ref=6716" 
