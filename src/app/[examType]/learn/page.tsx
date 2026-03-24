@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect , useMemo} from 'react';
 import { getExamData } from '@/utils/examData';
 import { getUserProgress, updateUserProgress } from '@/utils/userProgress';
 import { useAuth } from '@/contexts/AuthContext';
@@ -168,6 +168,14 @@ export default function LearnPage({ params }: LearnPageProps) {
     if (selectedAnswer !== null && examType && studySet.length > 0) {
       const currentQuestion = studySet[currentQuestionIndex];
       const isCorrect = selectedAnswer === currentQuestion.correct;
+
+        // Memoize shuffled answers to prevent re-shuffling on re-renders
+        const shuffledAnswers = useMemo(() => {
+              if (!currentQuestion) return [];
+              return [...currentQuestion.answers]
+                .map((answer, index) => ({ text: answer, index }))
+                .sort(() => Math.random() - 0.5);
+            }, [currentQuestion]);
       
       // Update session stats
       setSessionStats(prev => ({
@@ -297,11 +305,7 @@ const getMasteryColor = () => {
   if (consecutiveCorrect === 0) {
     stage = "First Time (1 choice)";
     stageColor = "text-blue-600";
-    availableAnswers = [{
-      text: currentQuestion.answers[currentQuestion.correct],
-      index: currentQuestion.correct
-    }];
-  } else if (consecutiveCorrect === 1) {
+          availableAnswers = shuffledAnswers;else if (consecutiveCorrect === 1) {
     stage = "Basic Practice (2 choices)";
     stageColor = "text-orange-600";
     const wrongAnswers = currentQuestion.answers
@@ -310,11 +314,7 @@ const getMasteryColor = () => {
     
     const randomWrong = wrongAnswers[Math.floor(Math.random() * wrongAnswers.length)];
     
-    availableAnswers = [
-      { text: currentQuestion.answers[currentQuestion.correct], index: currentQuestion.correct },
-      randomWrong
-    ].sort(() => Math.random() - 0.5);
-    
+          availableAnswers = shuffledAnswers;
   } else if (consecutiveCorrect <= 3) {
     stage = "Intermediate Practice (3 choices)";
     stageColor = "text-yellow-600";
@@ -324,19 +324,11 @@ const getMasteryColor = () => {
     
     const randomWrongs = wrongAnswers.sort(() => Math.random() - 0.5).slice(0, 2);
     
-    availableAnswers = [
-      { text: currentQuestion.answers[currentQuestion.correct], index: currentQuestion.correct },
-      ...randomWrongs
-    ].sort(() => Math.random() - 0.5);
-    
+          availableAnswers = shuffledAnswers;
   } else {
     stage = "Mastery Mode (4 choices)";
     stageColor = "text-green-600";
-    availableAnswers = currentQuestion.answers.map((answer, index) => ({
-      text: answer,
-      index
-    }));
-  }
+          availableAnswers = shuffledAnswers;
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -483,7 +475,7 @@ const getMasteryColor = () => {
             className="text-gray-600 hover:text-gray-800"
           >
             ← Back to {examType} exam
-          </button>
+         </button>
           
           {showResult && (
             <button
