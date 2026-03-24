@@ -4,24 +4,17 @@ export default function Home() {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 py-8">
+
         {/* Hero Section */}
         <div className="text-center mb-12">
           <h1 className="text-4xl md:text-6xl font-bold text-gray-900 mb-4">
-            Hack The Ham
+            QRZ Ready
           </h1>
-          <p className="text-xl md:text-2xl text-gray-600 mb-8">
-            Prepare for the FCC's Amateur Radio license exams with smart memorization techniques
+          <p className="text-xl md:text-2xl text-gray-600 mb-2">
+            Prepare for your FCC Amateur Radio license exam with smart memorization techniques
           </p>
-        </div>
-
-        {/* Memorization Focus */}
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-6 mb-12 max-w-4xl mx-auto">
-          <h2 className="text-xl font-semibold text-blue-900 mb-3">
-            🧠 Memorization-Focused Learning
-          </h2>
-          <p className="text-blue-800">
-            Coming Soon - Ham radio exams test your ability to recall specific answers from memory. This app is designed 
-            specifically for memorizing the correct answers through proven spaced repetition techniques.
+          <p className="text-sm text-gray-400 italic">
+            QRZ? That&apos;s ham radio for &ldquo;who&apos;s calling?&rdquo; &mdash; and soon, the answer will be you.
           </p>
         </div>
 
@@ -44,7 +37,7 @@ export default function Home() {
             icon="📡"
           />
           <ExamCard
-            title="Extra License"
+            title="Amateur Extra License"
             subtitle="🔬 All Privileges"
             description="The highest class with access to all amateur frequencies."
             examType="extra"
@@ -56,7 +49,7 @@ export default function Home() {
         {/* How It Works */}
         <div className="max-w-4xl mx-auto mb-12">
           <h2 className="text-2xl font-bold text-gray-900 mb-6 text-center">
-            How to Use HackTheHam.com
+            How QRZReady.com Works
           </h2>
           <div className="grid md:grid-cols-3 gap-6">
             <div className="text-center">
@@ -85,43 +78,43 @@ export default function Home() {
 
         {/* Resources Section */}
         <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 max-w-4xl mx-auto">
-          <h2 className="text-xl font-bold text-gray-900 mb-4">Resources & Links</h2>
+          <h2 className="text-xl font-bold text-gray-900 mb-4">Resources &amp; Links</h2>
           <div className="grid md:grid-cols-2 gap-6">
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">📡 About NY0E</h3>
               <p className="text-gray-600 mb-3">
                 Aside from developing this app, I do other stuff too. Visit my homepage for more ham radio projects, notes, and technical content.
               </p>
-              <a 
-                href="https://ny0e.com" 
-                target="_blank" 
+              <a
+                href="https://ny0e.com"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:text-blue-800 font-medium"
               >
-                Visit NY0E.com →
+                Visit NY0E.com &rarr;
               </a>
             </div>
             <div>
               <h3 className="font-semibold text-gray-900 mb-2">🚨 The FCC makes your registration public!</h3>
               <p className="text-gray-600 mb-3">
-                You can protect your privacy (while supporting HacktheHam) by using a virtual mailbox from iPostal1 to apply for your FRN and licenses.
+                You can protect your privacy (while supporting QRZReady) by using a virtual mailbox from iPostal1 to apply for your FRN and licenses.
               </p>
-              <a 
-                href="https://ipostal1.com/?ref=6716" 
-                target="_blank" 
+              <a
+                href="https://ipostal1.com/?ref=6716"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:text-blue-800 font-medium"
               >
-                Learn About iPostal1 →
+                Learn About iPostal1 &rarr;
               </a>
             </div>
           </div>
           <div className="mt-6 pt-4 border-t border-gray-200">
             <p className="text-sm text-gray-600">
               <strong>Questions or Feedback?</strong> Contact me via my website or find me on{' '}
-              <a 
-                href="https://www.qrz.com/db/NY0E" 
-                target="_blank" 
+              <a
+                href="https://www.qrz.com/db/NY0E"
+                target="_blank"
                 rel="noopener noreferrer"
                 className="text-blue-600 hover:text-blue-800"
               >
@@ -130,6 +123,7 @@ export default function Home() {
             </p>
           </div>
         </div>
+
       </div>
     </div>
   )
