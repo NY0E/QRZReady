@@ -17,6 +17,12 @@ export interface UserProgress {
     consecutiveCorrect: number;
     lastSeen: number;
   };
+    // Study metrics
+  totalStudyTimeMs?: number; // Total time spent studying in milliseconds
+  pomodoroSessionsCompleted?: number; // Number of completed Pomodoro sessions
+  studyDaysStreak?: number; // Current streak of consecutive study days
+  lastStudyDate?: string; // Last date user studied (ISO format)
+  studyDates?: string[]; // Array of dates when user studied
 }
 
 export interface TestScore {
