@@ -7,8 +7,8 @@ import { AuthHeader } from '@/components/AuthHeader'
 const inter = Inter({ subsets: ['latin'] })
 
 export const metadata: Metadata = {
-  title: 'Hack The Ham',
-  description: 'Hack your way to Amateur Radio license success with smart memorization techniques for Technician, General, and Extra class exams.',
+  title: 'QRZ Ready',
+  description: 'QRZ is ham radio for who is calling? -- and soon, the answer will be you. Prepare for your FCC Amateur Radio license exam with smart memorization techniques.',
 }
 
 export default function RootLayout({
@@ -25,20 +25,6 @@ export default function RootLayout({
             <main className="flex-1">
               {children}
             </main>
-            <footer className="mt-auto py-4 px-4 text-center border-t border-gray-200 bg-white">
-              <p className="text-sm text-gray-500">
-                Created by{' '}
-                <a 
-                  href="https://www.qrz.com/db/NY0E" 
-                  target="_blank" 
-                  rel="noopener noreferrer"
-                  className="font-medium text-gray-700 hover:text-blue-600 transition-colors"
-                >
-                  NY0E
-                </a>
-                {' '}• 73
-              </p>
-            </footer>
           </div>
         </AuthProvider>
       </body>
