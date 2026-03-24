@@ -7,6 +7,8 @@ import { useAuth } from '@/contexts/AuthContext';
 import type { Question, ExamType, UserProgress } from '@/types/exam';
 import { getMilestoneForCount } from '@/data/milestones';
 import MilestoneCelebration from '@/components/MilestoneCelebration';
+import PomodoroBreak from '@/components/PomodoroBreak';
+import { getRandomStudyBreakFactoid, StudyBreakFactoid } from '@/data/studyBreakFactoids';
 
 interface LearnPageProps {
   params: Promise<{ examType: string }>;
@@ -29,6 +31,11 @@ export default function LearnPage({ params }: LearnPageProps) {
   });
     const [currentMilestone, setCurrentMilestone] = useState<ReturnType<typeof getMilestoneForCount>>(null);
   const [shownMilestones, setShownMilestones] = useState<Set<number>>(new Set());
+    
+  // Pomodoro timer state
+  const [pomodoroStartTime, setPomodoroStartTime] = useState<number | null>(null);
+  const [showPomodoroBreak, setShowPomodoroBreak] = useState(false);
+  const [currentFactoid, setCurrentFactoid] = useState<StudyBreakFactoid | null>(null);
 
   // Intelligent study set generation
   const generateStudySet = (questions: Question[], progress: UserProgress): Question[] => {
@@ -158,6 +165,36 @@ export default function LearnPage({ params }: LearnPageProps) {
 
     loadData();
   }, [params]);
+
+    // Pomodoro timer - check every minute if 25 minutes have passed
+  useEffect(() => {
+    if (!pomodoroStartTime) {
+      // Initialize timer when component mounts
+      setPomodoroStartTime(Date.now());
+      return;
+    }
+
+    const checkInterval = setInterval(() => {
+      const elapsed = Date.now() - pomodoroStartTime;
+      const TWENTY_FIVE_MINUTES = 25 * 60 * 1000;
+
+      if (elapsed >= TWENTY_FIVE_MINUTES && !showPomodoroBreak) {
+        // Time for a break!
+        setCurrentFactoid(getRandomStudyBreakFactoid());
+        setShowPomodoroBreak(true);
+        // Reset timer for next session
+        setPomodoroStartTime(Date.now());
+      }
+    }, 60000); // Check every minute
+
+    return () => clearInterval(checkInterval);
+  }, [pomodoroStartTime, showPomodoroBreak]);
+
+  const handleClosePomodoroBreak = () => {
+    setShowPomodoroBreak(false);
+    // Reset timer to start new 25-minute session
+    setPomodoroStartTime(Date.now());
+  };
 
   const handleAnswerSelect = (answerIndex: number) => {
     setSelectedAnswer(answerIndex);
@@ -499,6 +536,14 @@ const getMasteryColor = () => {
         <MilestoneCelebration
           milestone={currentMilestone}
           onClose={() => setCurrentMilestone(null)}
+        />
+      )}
+
+              {/* Pomodoro Break Modal */}
+      {showPomodoroBreak && currentFactoid && (
+        <PomodoroBreak
+          factoid={currentFactoid}
+          onClose={handleClosePomodoroBreak}
         />
       )}
       </div>
