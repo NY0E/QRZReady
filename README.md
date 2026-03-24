@@ -1,2 +1,2 @@
-# hacktheham
+# QRZReady
 Memorization-Focused Ham Radio Exam Prep
