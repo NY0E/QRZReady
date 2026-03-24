@@ -1,7 +1,7 @@
 {
-  "name": "hack-the-ham",
+  "name": "qrz-ready",
   "version": "2.0.0",
-  "description": "Hack The Ham - Memorization-focused study tool for Amateur Radio license exams",
+  "description": "QRZ Ready - Memorization-focused study tool for Amateur Radio license exams",
   "private": true,
   "scripts": {
     "dev": "next dev",
