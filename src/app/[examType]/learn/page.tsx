@@ -5,6 +5,8 @@ import { getExamData } from '@/utils/examData';
 import { getUserProgress, updateUserProgress } from '@/utils/userProgress';
 import { useAuth } from '@/contexts/AuthContext';
 import type { Question, ExamType, UserProgress } from '@/types/exam';
+import { getMilestoneForCount } from '@/data/milestones';
+import MilestoneCelebration from '@/components/MilestoneCelebration';
 
 interface LearnPageProps {
   params: Promise<{ examType: string }>;
@@ -25,6 +27,8 @@ export default function LearnPage({ params }: LearnPageProps) {
     questionsAnswered: 0,
     correctAnswers: 0
   });
+    const [currentMilestone, setCurrentMilestone] = useState<ReturnType<typeof getMilestoneForCount>>(null);
+  const [shownMilestones, setShownMilestones] = useState<Set<number>>(new Set());
 
   // Intelligent study set generation
   const generateStudySet = (questions: Question[], progress: UserProgress): Question[] => {
@@ -497,6 +501,14 @@ const getMasteryColor = () => {
             Studying as: {user.displayName || user.email} • Intelligent Study Set: {studySet.length} questions
           </div>
         )}
+
+              {/* Milestone Celebration Modal */}
+      {currentMilestone && (
+        <MilestoneCelebration
+          milestone={currentMilestone}
+          onClose={() => setCurrentMilestone(null)}
+        />
+      )}
       </div>
     </div>
   );
