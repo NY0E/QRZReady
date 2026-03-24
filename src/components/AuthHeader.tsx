@@ -1,14 +1,11 @@
 'use client';
-
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
 import { AuthModal } from './AuthModal';
-
 export function AuthHeader() {
   const { user, logout } = useAuth();
   const [showAuthModal, setShowAuthModal] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
-
   const handleSignOut = async () => {
     try {
       await logout();
@@ -17,13 +14,12 @@ export function AuthHeader() {
       console.error('Error signing out:', error);
     }
   };
-
   return (
     <>
       <header className="bg-white border-b border-gray-200 px-4 py-3">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <div className="flex items-center">
-            <h1 className="text-xl font-bold text-gray-900">Hack The Ham</h1>
+            <h1 className="text-xl font-bold text-gray-900">QRZ Ready</h1>
           </div>
           
           <div className="flex items-center space-x-4">
@@ -63,7 +59,6 @@ export function AuthHeader() {
           </div>
         </div>
       </header>
-
       <AuthModal 
         isOpen={showAuthModal} 
         onClose={() => setShowAuthModal(false)} 
