@@ -256,7 +256,7 @@ export default function LearnPage({ params }: LearnPageProps) {
 
                if (milestone && !shownMilestones.has(milestone.milestone)) {
                           setCurrentMilestone(milestone);
-                          setShownMilestones(prev => new Set([...prev, milestone.milestone]));
+                          setShownMilestones(prev => new Set([...Array.from(prev), milestone.milestone]));
                         }
         
         // Check if question is now mastered (4+ consecutive correct)
