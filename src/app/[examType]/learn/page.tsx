@@ -35,7 +35,15 @@ export default function LearnPage({ params }: LearnPageProps) {
   // Pomodoro timer state
   const [pomodoroStartTime, setPomodoroStartTime] = useState<number | null>(null);
   const [showPomodoroBreak, setShowPomodoroBreak] = useState(false);
-  const [currentFactoid, setCurrentFactoid] = useState<StudyBreakFactoid | null>(null);
+  const [currentFactoid, setCurrentFactoid] = useState<StudyBreakFactoid | null>(nul
+
+  // Memoize shuffled answers to prevent re-shuffling on re-renders
+  const shuffledAnswers = useMemo(() => {
+    if (!studySet[currentQuestionIndex]) return [];
+    return [...studySet[currentQuestionIndex].answers]
+      .map((answer, index) => ({ text: answer, index }))
+      .sort(() => Math.random() - 0.5);
+  }, [studySet, currentQuestionIndex]);l);
 
   // Intelligent study set generation
   const generateStudySet = (questions: Question[], progress: UserProgress): Question[] => {
@@ -206,14 +214,7 @@ export default function LearnPage({ params }: LearnPageProps) {
       const currentQuestion = studySet[currentQuestionIndex];
       const isCorrect = selectedAnswer === currentQuestion.correct;
 
-        // Memoize shuffled answers to prevent re-shuffling on re-renders
-        const shuffledAnswers = useMemo(() => {
-              if (!currentQuestion) return [];
-              return [...currentQuestion.answers]
-                .map((answer, index) => ({ text: answer, index }))
-                .sort(() => Math.random() - 0.5);
-            }, [currentQuestion]);
-      
+  
       // Update session stats
       setSessionStats(prev => ({
         questionsAnswered: prev.questionsAnswered + 1,
