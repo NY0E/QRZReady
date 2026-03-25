@@ -121,8 +121,7 @@ export default function ResourcesPage() {
             <p className="text-blue-50 mb-6">
               Check out my curated collection of ham radio gear I've personally tested and reviewed on video. 
               Each product includes my hands-on impressions and real-world testing.
-            </p>
-            <a 
+        <h2 className="text-2xl font-semibold mb-4">🎥 NY0E's Amazon Storefront</h2>            <a 
               href="https://www.amazon.com/shop/dad.tested/curation/74b6dcbc-7c97-422b-833e-891920bd892d?ccs_id=8726a5b0-4a38-4f14-8a91-b0e5c5607f34&ref_=aip_sf_cur_spv_ons_d"
               target="_blank"
               rel="noopener noreferrer"
