@@ -40,13 +40,12 @@ export default function ResourcesPage() {
 
             {/* BaoFeng Radio */}
             <a 
-              href="https://www.amazon.com/dp/B007H4VT7A?tag=qrzready-20" 
-              target="_blank"
+              href="https://www.amazon.com/dp/B0BHQXV5FV?tag=qrzready-20"              target="_blank"
               rel="noopener noreferrer"
               className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
             >
               <div className="text-sm text-gray-500 mb-2">Starter Radio</div>
-              <h3 className="font-semibold text-gray-900 mb-2">BaoFeng UV-5R</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">Baofeng F8HP-Pro</h3>
               <p className="text-sm text-gray-600 mb-4">Affordable dual-band radio perfect for new hams to start practicing</p>
               <div className="text-blue-600 text-sm font-medium">View on Amazon →</div>
             </a>
@@ -98,10 +97,27 @@ export default function ResourcesPage() {
           </div>
         </section>
 
+              {/* HamStudy.org Section */}
+              <section className="mb-12 bg-green-50 rounded-lg p-8">
+                        <h2 className="text-2xl font-semibold mb-4 text-green-900">📝 Practice & Schedule Your Exam</h2>
+                        <p className="text-gray-700 mb-6">
+                                    Looking for realistic exam practice and ready to schedule your test?
+                                    <strong className="text-green-900"> HamStudy.org</strong> offers full exam simulations and helps you find local testing sessions in your area.
+                                  </p>
+                        <a
+                                    href="https://hamstudy.org/"
+                                    target="_blank"
+                                    rel="noopener noreferrer"
+                                    className="inline-block bg-green-600 text-white font-semibold px-6 py-3 rounded-lg hover:bg-green-700 transition-colors"
+                                  >
+                                    Visit HamStudy.org →
+                                  </a>
+                      </section>
+
                 {/* Dad.Tested Curated Products */}
         <section className="mb-12">
           <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-8 text-white">
-            <h2 className="text-2xl font-semibold mb-4">🎥 Dad.Tested Ham Radio Favorites</h2>
+            <h2 className="text-2xl font-semibold mb-4">🎥 Baofeng F8NY0E's Amazon StorefrontHP-Pro</h2>
             <p className="text-blue-50 mb-6">
               Check out my curated collection of ham radio gear I've personally tested and reviewed on video. 
               Each product includes my hands-on impressions and real-world testing.
