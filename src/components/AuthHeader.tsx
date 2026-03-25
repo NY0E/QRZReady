@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import { useAuth } from '@/contexts/AuthContext';
+import Link from 'next/link';
 import { AuthModal } from './AuthModal';
 export function AuthHeader() {
   const { user, logout } = useAuth();
@@ -19,8 +20,7 @@ export function AuthHeader() {
       <header className="bg-white border-b border-gray-200 px-4 py-3">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <div className="flex items-center">
-            <h1 className="text-xl font-bold text-gray-900">QRZ Ready</h1>
-          </div>
+          <Link href="/"><h1 className="text-xl font-bold text-gray-900 hover:text-blue-600 cursor-pointer">QRZ Ready</h1></Link>          </div>
           
           <div className="flex items-center space-x-4">
             {user ? (
