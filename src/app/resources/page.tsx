@@ -116,8 +116,6 @@ export default function ResourcesPage() {
 
                 {/* Dad.Tested Curated Products */}
         <section className="mb-12">
-          <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-8 text-white">
-            <h2 className="text-2xl font-semibold mb-4">🎥 Baofeng F8NY0E's Amazon StorefrontHP-Pro</h2>
             <p className="text-blue-50 mb-6">
               Check out my curated collection of ham radio gear I've personally tested and reviewed on video. 
               Each product includes my hands-on impressions and real-world testing.
