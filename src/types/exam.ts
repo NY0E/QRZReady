@@ -17,6 +17,7 @@ export interface UserProgress {
     consecutiveCorrect: number;
     lastSeen: number;
   };
+  }
   
 
 export interface TestScore {
