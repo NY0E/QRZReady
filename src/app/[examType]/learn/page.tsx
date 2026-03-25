@@ -344,7 +344,7 @@ const getMasteryColor = () => {
   if (consecutiveCorrect === 0) {
     stage = "First Time (1 choice)";
     stageColor = "text-blue-600";
-          availableAnswers = shuffledAnswers;else if (consecutiveCorrect === 1) {
+          availableAnswers = shuffledAnswers;   } else if (consecutiveCorrect === 1) {
     stage = "Basic Practice (2 choices)";
     stageColor = "text-orange-600";
     const wrongAnswers = currentQuestion.answers
