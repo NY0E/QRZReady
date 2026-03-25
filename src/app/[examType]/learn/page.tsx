@@ -44,7 +44,7 @@ export default function LearnPage({ params }: LearnPageProps) {
     return [...studySet[currentQuestionIndex].answers]
       .map((answer, index) => ({ text: answer, index }))
       .sort(() => Math.random() - 0.5);
-  }, [studySet, currentQuestionIndex]);l);
+  }, [studySet, currentQuestionIndex]);
 
   // Intelligent study set generation
   const generateStudySet = (questions: Question[], progress: UserProgress): Question[] => {
