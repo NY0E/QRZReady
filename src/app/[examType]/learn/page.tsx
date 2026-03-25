@@ -362,13 +362,19 @@ const getMasteryColor = () => {
       .filter(answer => answer.index !== currentQuestion.correct);
     
     const randomWrong = wrongAnswers[Math.floor(Math.random() * wrongAnswers.length)];
+      
+  availableAnswers = [
+    { text: currentQuestion.answers[currentQuestion.correct], index: currentQuestion.correct },
+    randomWrong
+  ].sort(() => Math.random() - 0.5);
     
       }
     else if (consecutiveCorrect <= 3) {
     stage = "Intermediate Practice (3 choices)";
     stageColor = "text-yellow-600";
     const wrongAnswers = currentQuestion.answers
-  else if (consecutiveCorrect <= 3) {      .filter(answer => answer.index !== currentQuestion.correct);
+    .map((answer, index) => ({ text: answer, index }))
+    .filter(answer => answer.index !== currentQuestion.correct);
     
     const randomWrongs = wrongAnswers.sort(() => Math.random() - 0.5).slice(0, 2);
     
