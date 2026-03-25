@@ -251,7 +251,7 @@ export default function LearnPage({ params }: LearnPageProps) {
         setUserProgress(newUserProgress);
 
                // Check for milestone achievements
-               const totalMastered = Object.values(newUserProgress).filter((p): p is NonNullable<typeof p> => p != null && p.consecutiveCorrect >= 4).length;
+               const totalMastered = Object.values(newUserProgress).filter(p => p && typeof p === 'object' && 'consecutiveCorrect' in p && p.consecutiveCorrect >= 4).length;
                const milestone = getMilestoneForCount(totalMastered);
 
                if (milestone && !shownMilestones.has(milestone.milestone)) {
@@ -335,7 +335,7 @@ export default function LearnPage({ params }: LearnPageProps) {
   const studySetStats = getStudySetStats();
 
 // Calculate total mastery progress
-const totalMastered = Object.values(userProgress).filter((p): p is NonNullable<typeof p> => p != null && p.consecutiveCorrect >= 4).length;
+const totalMastered = Object.values(userProgress).filter(p => p && typeof p === 'object' && 'consecutiveCorrect' in p && p.consecutiveCorrect >= 4).length;
 const masteryPercentage = allQuestions.length > 0 ? Math.round((totalMastered / allQuestions.length) * 100) : 0;
 
 // Get mastery color based on percentage
