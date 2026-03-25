@@ -249,6 +249,15 @@ export default function LearnPage({ params }: LearnPageProps) {
           [currentQuestion.id]: currentProgress
         };
         setUserProgress(newUserProgress);
+
+               // Check for milestone achievements
+               const totalMastered = Object.values(newUserProgress).filter(p => p?.consecutiveCorrect >= 4).length;
+               const milestone = getMilestoneForCount(totalMastered);
+
+               if (milestone && !shownMilestones.has(milestone.milestone)) {
+                          setCurrentMilestone(milestone);
+                          setShownMilestones(prev => new Set([...prev, milestone.milestone]));
+                        }
         
         // Check if question is now mastered (4+ consecutive correct)
         if (isCorrect && currentProgress.consecutiveCorrect >= 4) {
