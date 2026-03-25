@@ -353,7 +353,8 @@ const getMasteryColor = () => {
   if (consecutiveCorrect === 0) {
     stage = "First Time (1 choice)";
     stageColor = "text-blue-600";
-          availableAnswers = shuffledAnswers;   } else if (consecutiveCorrect === 1) {
+    availableAnswers = shuffledAnswers;
+      }else if (consecutiveCorrect === 1) {
     stage = "Basic Practice (2 choices)";
     stageColor = "text-orange-600";
     const wrongAnswers = currentQuestion.answers
@@ -362,8 +363,8 @@ const getMasteryColor = () => {
     
     const randomWrong = wrongAnswers[Math.floor(Math.random() * wrongAnswers.length)];
     
-          availableAnswers = shuffledAnswers;
-  } else if (consecutiveCorrect <= 3) {
+      }
+    } else if (consecutiveCorrect <= 3) {
     stage = "Intermediate Practice (3 choices)";
     stageColor = "text-yellow-600";
     const wrongAnswers = currentQuestion.answers
@@ -377,6 +378,7 @@ const getMasteryColor = () => {
     stage = "Mastery Mode (4 choices)";
     stageColor = "text-green-600";
           availableAnswers = shuffledAnswers;
+    }
 
   return (
     <div className="min-h-screen bg-gray-50">
