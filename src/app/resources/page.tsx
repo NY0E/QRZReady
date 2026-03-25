@@ -45,7 +45,7 @@ export default function ResourcesPage() {
               className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
             >
               <div className="text-sm text-gray-500 mb-2">Starter Radio</div>
-              <h3 className="font-semibold text-gray-900 mb-2">Baofeng F8HP-Pro</h3>
+              <h3 className="font-semibold text-gray-900 mb-2">Baofeng F8HP Pro</h3>
               <p className="text-sm text-gray-600 mb-4">Affordable dual-band radio perfect for new hams to start practicing</p>
               <div className="text-blue-600 text-sm font-medium">View on Amazon →</div>
             </a>
