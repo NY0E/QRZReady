@@ -14,7 +14,7 @@ export default function ResourcesPage() {
           <div className="grid md:grid-cols-3 gap-6">
             {/* ARRL Technician Manual */}
             <a 
-              href="https://www.amazon.com/dp/1625952937?tag=YOUR_AMAZON_TAG" 
+              href="https://www.amazon.com/dp/1625952937?tag=qrzready-20" 
               target="_blank"
               rel="noopener noreferrer"
               className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
@@ -27,7 +27,7 @@ export default function ResourcesPage() {
 
             {/* Gordon West Book */}
             <a 
-              href="https://www.amazon.com/dp/0945053983?tag=YOUR_AMAZON_TAG" 
+              href="https://www.amazon.com/dp/0945053983?tag=qrzready-20" 
               target="_blank"
               rel="noopener noreferrer"
               className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
@@ -40,7 +40,7 @@ export default function ResourcesPage() {
 
             {/* BaoFeng Radio */}
             <a 
-              href="https://www.amazon.com/dp/B007H4VT7A?tag=YOUR_AMAZON_TAG" 
+              href="https://www.amazon.com/dp/B007H4VT7A?tag=qrzready-20" 
               target="_blank"
               rel="noopener noreferrer"
               className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
@@ -59,7 +59,7 @@ export default function ResourcesPage() {
           <div className="grid md:grid-cols-3 gap-6">
             {/* ARRL General Manual */}
             <a 
-              href="https://www.amazon.com/dp/1625952945?tag=YOUR_AMAZON_TAG" 
+              href="https://www.amazon.com/dp/1625952945?tag=qrzready-20" 
               target="_blank"
               rel="noopener noreferrer"
               className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
@@ -72,7 +72,7 @@ export default function ResourcesPage() {
 
             {/* Gordon West General */}
             <a 
-              href="https://www.amazon.com/dp/0945053991?tag=YOUR_AMAZON_TAG" 
+              href="https://www.amazon.com/dp/0945053991?tag=qrzready-20" 
               target="_blank"
               rel="noopener noreferrer"
               className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
@@ -85,7 +85,7 @@ export default function ResourcesPage() {
 
             {/* HF Radio */}
             <a 
-              href="https://www.amazon.com/dp/B08YNDJ3BZ?tag=YOUR_AMAZON_TAG" 
+              href="https://www.amazon.com/dp/B08YNDJ3BZ?tag=qrzready-20" 
               target="_blank"
               rel="noopener noreferrer"
               className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 hover:shadow-md transition-shadow"
@@ -94,6 +94,25 @@ export default function ResourcesPage() {
               <h3 className="font-semibold text-gray-900 mb-2">Xiegu G90 HF Transceiver</h3>
               <p className="text-sm text-gray-600 mb-4">Portable HF radio great for General class operators starting on HF bands</p>
               <div className="text-blue-600 text-sm font-medium">View on Amazon →</div>
+            </a>
+          </div>
+        </section>
+
+                {/* Dad.Tested Curated Products */}
+        <section className="mb-12">
+          <div className="bg-gradient-to-r from-blue-500 to-blue-600 rounded-lg p-8 text-white">
+            <h2 className="text-2xl font-semibold mb-4">🎥 Dad.Tested Ham Radio Favorites</h2>
+            <p className="text-blue-50 mb-6">
+              Check out my curated collection of ham radio gear I've personally tested and reviewed on video. 
+              Each product includes my hands-on impressions and real-world testing.
+            </p>
+            <a 
+              href="https://www.amazon.com/shop/dad.tested/curation/74b6dcbc-7c97-422b-833e-891920bd892d?ccs_id=8726a5b0-4a38-4f14-8a91-b0e5c5607f34&ref_=aip_sf_cur_spv_ons_d"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-block bg-white text-blue-600 px-6 py-3 rounded-lg font-semibold hover:bg-blue-50 transition-colors"
+            >
+              View My Shoppable Video Reviews →
             </a>
           </div>
         </section>
