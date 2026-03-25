@@ -1,5 +1,6 @@
 'use client';
 
+
 import { useState, useEffect , useMemo} from 'react';
 import { getExamData } from '@/utils/examData';
 import { getUserProgress, updateUserProgress } from '@/utils/userProgress';
@@ -35,7 +36,7 @@ export default function LearnPage({ params }: LearnPageProps) {
   // Pomodoro timer state
   const [pomodoroStartTime, setPomodoroStartTime] = useState<number | null>(null);
   const [showPomodoroBreak, setShowPomodoroBreak] = useState(false);
-  const [currentFactoid, setCurrentFactoid] = useState<StudyBreakFactoid | null>(nul
+  const [currentFactoid, setCurrentFactoid] = useState<StudyBreakFactoid | null>(null);
 
   // Memoize shuffled answers to prevent re-shuffling on re-renders
   const shuffledAnswers = useMemo(() => {
