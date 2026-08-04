@@ -9,16 +9,26 @@ interface ExamCardProps {
   examType: string;
   questionCount: number;
   icon: string;
+  badge?: { text: string; href: string };
 }
 
-export function ExamCard({ title, subtitle, description, examType, questionCount, icon }: ExamCardProps) {
+export function ExamCard({ title, subtitle, description, examType, questionCount, icon, badge }: ExamCardProps) {
   const router = useRouter();
 
   return (
-    <div 
+    <div
       onClick={() => router.push(`/${examType}`)}
-      className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-md transition-shadow"
+      className="relative bg-white rounded-lg shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-md transition-shadow"
     >
+      {badge && (
+        <a
+          href={badge.href}
+          onClick={(e) => e.stopPropagation()}
+          className="absolute top-3 right-3 inline-flex items-center gap-1 bg-blue-50 text-blue-700 text-xs font-medium px-2.5 py-1 rounded-full border border-blue-200 hover:bg-blue-100 transition-colors"
+        >
+          {badge.text}
+        </a>
+      )}
       <div className="text-center">
         <div className="text-4xl mb-4">{icon}</div>
         <h3 className="text-xl font-bold text-gray-900 mb-2">{title}</h3>

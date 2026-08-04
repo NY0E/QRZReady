@@ -25,8 +25,9 @@ export default function Home() {
             subtitle="📻 Entry Level"
             description="Your first step into Amateur Radio. Most VHF/UHF privileges."
             examType="technician"
-            questionCount={412}
+            questionCount={409}
             icon="📻"
+            badge={{ text: 'Updated for 2026 exam changes', href: '/changelog' }}
           />
           <ExamCard
             title="General License"
