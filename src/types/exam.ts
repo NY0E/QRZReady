@@ -8,6 +8,7 @@ export interface Question {
   refs: string;
   subelement: string;
   section: string;
+  figure?: string;
 }
 
 export interface UserProgress {

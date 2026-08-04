@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { getExamData } from '@/utils/examData';
 import type { Question, ExamType } from '@/types/exam';
+import AnnouncementBanner from '@/components/AnnouncementBanner';
 
 interface ExamPageProps {
   params: Promise<{ examType: string }>;
@@ -78,6 +79,15 @@ export default function ExamPage({ params }: ExamPageProps) {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-6xl mx-auto px-4 py-8">
+        {examType === 'technician' && (
+          <AnnouncementBanner
+            id="technician-2026-2030"
+            message="The Technician question pool was updated to 2026-2030 on July 1, 2026 — QRZReady is fully up to date."
+            linkHref="/changelog"
+            linkText="See what changed"
+          />
+        )}
+
         {/* Header */}
         <div className="text-center mb-8">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 capitalize">

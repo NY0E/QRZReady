@@ -41,7 +41,8 @@ export async function getExamData(examType: ExamType): Promise<Question[]> {
       correct: item.correct,
       refs: item.refs,
       subelement: extractSubelement(item.id),
-      section: extractSection(item.id)
+      section: extractSection(item.id),
+      figure: item.figure || undefined
     }));
     
     questionCache.set(examType, questions);

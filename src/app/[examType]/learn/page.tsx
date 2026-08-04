@@ -10,6 +10,7 @@ import { getMilestoneForCount } from '@/data/milestones';
 import MilestoneCelebration from '@/components/MilestoneCelebration';
 import PomodoroBreak from '@/components/PomodoroBreak';
 import { getRandomStudyBreakFactoid, StudyBreakFactoid } from '@/data/studyBreakFactoids';
+import AnnouncementBanner from '@/components/AnnouncementBanner';
 
 interface LearnPageProps {
   params: Promise<{ examType: string }>;
@@ -388,6 +389,15 @@ const getMasteryColor = () => {
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-4xl mx-auto px-4 py-8">
+        {examType === 'technician' && (
+          <AnnouncementBanner
+            id="technician-2026-2030"
+            message="The Technician question pool was updated to 2026-2030 on July 1, 2026 — QRZReady is fully up to date."
+            linkHref="/changelog"
+            linkText="See what changed"
+          />
+        )}
+
         {/* Header */}
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
@@ -453,6 +463,14 @@ const getMasteryColor = () => {
           <h2 className="text-lg font-medium text-gray-900 mb-6">
             {currentQuestion.question}
           </h2>
+
+          {currentQuestion.figure && (
+            <img
+              src={`/images/${currentQuestion.figure}`}
+              alt={`Diagram for question ${currentQuestion.id}`}
+              className="max-w-full mb-6 border border-gray-200 rounded-lg"
+            />
+          )}
 
           <div className="space-y-3">
             {availableAnswers.map((answer, displayIndex) => {
