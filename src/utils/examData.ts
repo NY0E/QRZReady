@@ -1,7 +1,7 @@
 import type { Question, ExamType } from '@/types/exam';
 
 const GITHUB_RAW_URLS = {
-  technician: 'https://raw.githubusercontent.com/ny0e/ham_radio_question_pool/master/technician-2022-2026/technician.json',
+  technician: 'https://raw.githubusercontent.com/ny0e/ham_radio_question_pool/master/technician-2026-2030/technician.json',
   general: 'https://raw.githubusercontent.com/ny0e/ham_radio_question_pool/master/general-2023-2027/general.json',
   extra: 'https://raw.githubusercontent.com/ny0e/ham_radio_question_pool/master/extra-2024-2028/extra.json'
 };
@@ -13,7 +13,8 @@ export async function getExamData(examType: ExamType): Promise<Question[]> {
     return questionCache.get(examType)!;
   }
 
-  const cacheKey = `ham-questions-${examType}`;
+  // Versioned so cached clients pick up the 2026-2030 pool instead of stale data
+  const cacheKey = `ham-questions-${examType}-v2`;
   const cachedData = localStorage.getItem(cacheKey);
   
   if (cachedData) {
