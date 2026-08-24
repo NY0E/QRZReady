@@ -284,10 +284,10 @@ export default function LearnPage({ params }: LearnPageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-bg flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Building your personalized study set...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber mx-auto mb-4"></div>
+          <p className="text-ink-mid font-mono text-sm">Building your personalized study set...</p>
         </div>
       </div>
     );
@@ -295,13 +295,13 @@ export default function LearnPage({ params }: LearnPageProps) {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center p-6 bg-red-50 rounded-lg max-w-md">
-          <h2 className="text-lg font-semibold text-red-800 mb-2">Error Loading Study Session</h2>
-          <p className="text-red-600 mb-4">{error}</p>
-          <button 
+      <div className="min-h-screen bg-bg flex items-center justify-center">
+        <div className="text-center p-6 bg-red-950/30 border border-red-900 rounded-lg max-w-md">
+          <h2 className="text-lg font-mono font-medium text-red-400 mb-2">Error Loading Study Session</h2>
+          <p className="text-red-300/80 text-sm mb-4">{error}</p>
+          <button
             onClick={() => window.location.reload()}
-            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+            className="bg-red-900 text-red-100 font-mono px-4 py-2 rounded hover:bg-red-800 transition-colors"
           >
             Try Again
           </button>
@@ -312,15 +312,15 @@ export default function LearnPage({ params }: LearnPageProps) {
 
   if (!examType || studySet.length === 0) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center p-6 bg-blue-50 rounded-lg max-w-md">
-          <h2 className="text-lg font-semibold text-blue-800 mb-2">🎉 Great Progress!</h2>
-          <p className="text-blue-600 mb-4">
+      <div className="min-h-screen bg-bg flex items-center justify-center">
+        <div className="text-center p-6 bg-amber-bg border border-amber-dim rounded-lg max-w-md">
+          <h2 className="text-lg font-mono font-medium text-amber mb-2">🎉 Great Progress!</h2>
+          <p className="text-ink-mid text-sm mb-4">
             Generating your next study set based on your learning progress...
           </p>
-          <button 
+          <button
             onClick={() => window.location.reload()}
-            className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+            className="bg-amber text-bg font-mono font-medium px-4 py-2 rounded hover:bg-amber/90 transition-colors"
           >
             Continue Studying
           </button>
@@ -341,11 +341,11 @@ const masteryPercentage = allQuestions.length > 0 ? Math.round((totalMastered / 
 
 // Get mastery color based on percentage
 const getMasteryColor = () => {
-  if (masteryPercentage >= 75) return "text-green-600";
-  if (masteryPercentage >= 40) return "text-yellow-600";
-  return "text-blue-600";
+  if (masteryPercentage >= 75) return "text-emerald-400";
+  if (masteryPercentage >= 40) return "text-yellow-400";
+  return "text-amber";
 };
-  
+
   // Adaptive difficulty logic
   let availableAnswers: Array<{ text: string; index: number }>;
   let stage: string;
@@ -353,11 +353,11 @@ const getMasteryColor = () => {
 
   if (consecutiveCorrect === 0) {
     stage = "First Time (1 choice)";
-    stageColor = "text-blue-600";
+    stageColor = "text-sky-400";
     availableAnswers = shuffledAnswers;
       }else if (consecutiveCorrect === 1) {
     stage = "Basic Practice (2 choices)";
-    stageColor = "text-orange-600";
+    stageColor = "text-orange-400";
     const wrongAnswers = currentQuestion.answers
       .map((answer, index) => ({ text: answer, index }))
       .filter(answer => answer.index !== currentQuestion.correct);
@@ -372,22 +372,22 @@ const getMasteryColor = () => {
       }
     else if (consecutiveCorrect <= 3) {
     stage = "Intermediate Practice (3 choices)";
-    stageColor = "text-yellow-600";
+    stageColor = "text-yellow-400";
     const wrongAnswers = currentQuestion.answers
     .map((answer, index) => ({ text: answer, index }))
     .filter(answer => answer.index !== currentQuestion.correct);
-    
+
     const randomWrongs = wrongAnswers.sort(() => Math.random() - 0.5).slice(0, 2);
-    
+
           availableAnswers = shuffledAnswers;
   } else {
     stage = "Mastery Mode (4 choices)";
-    stageColor = "text-green-600";
+    stageColor = "text-emerald-400";
           availableAnswers = shuffledAnswers;
     }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-bg">
       <div className="max-w-4xl mx-auto px-4 py-8">
         {examType === 'technician' && (
           <AnnouncementBanner
@@ -401,66 +401,66 @@ const getMasteryColor = () => {
         {/* Header */}
         <div className="mb-6">
           <div className="flex justify-between items-center mb-2">
-            <h1 className="text-2xl font-bold text-gray-900 capitalize">
+            <h1 className="text-2xl font-mono font-medium text-ink capitalize">
               {examType} Learn Mode
             </h1>
-            <div className="text-sm text-gray-600">
+            <div className="text-sm text-ink-mid font-mono">
               Question {currentQuestionIndex + 1} of {studySet.length}
             </div>
           </div>
-          
+
           {/* Study Set Info */}
           <div className="flex justify-between items-center mb-2">
-            <div className={`text-sm font-medium ${stageColor}`}>
+            <div className={`text-sm font-mono font-medium ${stageColor}`}>
               {stage}
             </div>
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-ink-dim font-mono">
               Study Set: {studySetStats.neverSeen} new • {studySetStats.needsPractice} practice • {studySetStats.needsReview} review • {studySetStats.mastered} mastered
             </div>
           </div>
-          
-          <div className="w-full bg-gray-200 rounded-full h-2">
-            <div 
-              className="bg-blue-600 h-2 rounded-full transition-all duration-300"
+
+          <div className="w-full bg-border rounded-full h-2">
+            <div
+              className="bg-amber h-2 rounded-full transition-all duration-300"
               style={{ width: `${((currentQuestionIndex + 1) / studySet.length) * 100}%` }}
             ></div>
           </div>
 
           {/* Session Stats */}
           {sessionStats.questionsAnswered > 0 && (
-            <div className="text-xs text-gray-500 mt-2 text-center">
-              Session: {sessionStats.correctAnswers}/{sessionStats.questionsAnswered} correct 
+            <div className="text-xs text-ink-dim font-mono mt-2 text-center">
+              Session: {sessionStats.correctAnswers}/{sessionStats.questionsAnswered} correct
               ({Math.round((sessionStats.correctAnswers / sessionStats.questionsAnswered) * 100)}%)
             </div>
           )}
 
 {/* Overall Mastery Progress */}
-<div className="text-xs mt-2 text-center">
+<div className="text-xs font-mono mt-2 text-center">
   <span className={`font-medium ${getMasteryColor()}`}>
     🌟 {totalMastered}/{allQuestions.length} mastered ({masteryPercentage}%)
   </span>
   {masteryPercentage >= 75 && (
-    <span className="ml-2 text-green-600">🎯 Exam Ready!</span>
+    <span className="ml-2 text-emerald-400">🎯 Exam Ready!</span>
   )}
 </div>
-          
+
         </div>
 
         {/* Question Card */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
+        <div className="bg-surface rounded-lg border border-border p-6 mb-6">
           <div className="flex justify-between items-start mb-4">
-            <div className="text-sm text-gray-600">
-              <span className="font-medium">{currentQuestion.id}</span>
+            <div className="text-sm text-ink-mid font-mono">
+              <span className="font-medium text-ink">{currentQuestion.id}</span>
               {currentQuestion.refs && (
                 <span className="ml-2">{currentQuestion.refs}</span>
               )}
             </div>
-            <div className="text-xs text-gray-500">
+            <div className="text-xs text-ink-dim font-mono">
               Consecutive: {consecutiveCorrect}
             </div>
           </div>
 
-          <h2 className="text-lg font-medium text-gray-900 mb-6">
+          <h2 className="text-lg font-medium text-ink mb-6">
             {currentQuestion.question}
           </h2>
 
@@ -468,7 +468,7 @@ const getMasteryColor = () => {
             <img
               src={`/images/${currentQuestion.figure}`}
               alt={`Diagram for question ${currentQuestion.id}`}
-              className="max-w-full mb-6 border border-gray-200 rounded-lg"
+              className="max-w-full mb-6 border border-border rounded-lg"
             />
           )}
 
@@ -476,22 +476,22 @@ const getMasteryColor = () => {
             {availableAnswers.map((answer, displayIndex) => {
               const isSelected = selectedAnswer === answer.index;
               const isCorrectAnswer = answer.index === currentQuestion.correct;
-              
+
               let buttonClass = "w-full text-left p-4 rounded-lg border transition-all ";
-              
+
               if (showResult) {
                 if (isCorrectAnswer) {
-                  buttonClass += "bg-green-100 border-green-500 text-green-800";
+                  buttonClass += "bg-emerald-950/40 border-emerald-600 text-emerald-300";
                 } else if (isSelected && !isCorrectAnswer) {
-                  buttonClass += "bg-red-100 border-red-500 text-red-800";
+                  buttonClass += "bg-red-950/40 border-red-600 text-red-300";
                 } else {
-                  buttonClass += "bg-gray-50 border-gray-300 text-gray-600";
+                  buttonClass += "bg-bg border-border text-ink-dim";
                 }
               } else {
                 if (isSelected) {
-                  buttonClass += "bg-blue-100 border-blue-500 text-blue-800";
+                  buttonClass += "bg-amber-bg border-amber text-amber";
                 } else {
-                  buttonClass += "bg-white border-gray-300 text-gray-900 hover:border-blue-500 hover:bg-blue-50";
+                  buttonClass += "bg-bg border-border text-ink hover:border-amber hover:bg-amber-bg";
                 }
               }
 
@@ -513,7 +513,7 @@ const getMasteryColor = () => {
 
           {/* Result Message with Study Set Progression */}
           {showResult && (
-            <div className={`mt-4 p-4 rounded-lg ${isCorrect ? 'bg-green-50 text-green-800' : 'bg-red-50 text-red-800'}`}>
+            <div className={`mt-4 p-4 rounded-lg ${isCorrect ? 'bg-emerald-950/30 text-emerald-300' : 'bg-red-950/30 text-red-300'}`}>
               <div className="font-medium">
                 {isCorrect ? '✅ Correct!' : '❌ Incorrect'}
               </div>
@@ -523,17 +523,17 @@ const getMasteryColor = () => {
                 </div>
               )}
               {isCorrect && consecutiveCorrect < 3 && (
-                <div className="text-sm mt-1 text-green-700">
+                <div className="text-sm mt-1 text-emerald-400/90">
                   Great! Next time this question will have {consecutiveCorrect === 0 ? '2' : consecutiveCorrect === 1 ? '3' : '4'} choices.
                 </div>
               )}
               {isCorrect && consecutiveCorrect === 3 && (
-                <div className="text-sm mt-1 text-green-700">
+                <div className="text-sm mt-1 text-emerald-400/90">
                   🎉 One more correct answer and you'll master this question!
                 </div>
               )}
               {isCorrect && consecutiveCorrect >= 4 && (
-                <div className="text-sm mt-1 text-green-700">
+                <div className="text-sm mt-1 text-emerald-400/90">
                   🌟 Question mastered! It will be replaced with a new question in your study set.
                 </div>
               )}
@@ -545,15 +545,15 @@ const getMasteryColor = () => {
         <div className="flex justify-between items-center">
           <button
             onClick={() => window.history.back()}
-            className="text-gray-600 hover:text-gray-800"
+            className="text-ink-mid hover:text-ink font-mono text-sm transition-colors"
           >
             ← Back to {examType} exam
          </button>
-          
+
           {showResult && (
             <button
               onClick={handleNext}
-              className="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+              className="bg-amber text-bg font-mono font-medium px-6 py-2 rounded-lg hover:bg-amber/90 transition-colors"
             >
               Next Question →
             </button>
@@ -562,7 +562,7 @@ const getMasteryColor = () => {
 
         {/* User Status */}
         {user && (
-          <div className="mt-6 text-center text-sm text-gray-600">
+          <div className="mt-6 text-center text-sm text-ink-dim font-mono">
             Studying as: {user.displayName || user.email} • Intelligent Study Set: {studySet.length} questions
           </div>
         )}

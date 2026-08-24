@@ -17,37 +17,37 @@ export function AuthHeader() {
   };
   return (
     <>
-      <header className="bg-white border-b border-gray-200 px-4 py-3">
+      <header className="bg-bg border-b border-border px-4 py-3">
         <div className="max-w-6xl mx-auto flex justify-between items-center">
           <div className="flex items-center">
-          <Link href="/"><h1 className="text-xl font-bold text-gray-900 hover:text-blue-600 cursor-pointer">QRZ Ready</h1></Link>          </div>
-          
+          <Link href="/"><h1 className="text-xl font-mono font-medium text-amber hover:text-amber/80 cursor-pointer tracking-tight">QRZ Ready</h1></Link>          </div>
+
           <div className="flex items-center space-x-4">
             {user ? (
               <div className="relative">
                 <button
                   onClick={() => setShowDropdown(!showDropdown)}
-                  className="flex items-center space-x-2 text-gray-700 hover:text-gray-900"
+                  className="flex items-center space-x-2 text-ink-mid hover:text-ink font-mono text-sm transition-colors"
                 >
                   <span>{user.displayName || user.email}</span>
                   <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                   </svg>
                 </button>
-                
+
                 {showDropdown && (
-                  <div className="absolute right-0 mt-2 w-48 bg-white rounded-md shadow-lg border border-gray-200 z-10">
+                  <div className="absolute right-0 mt-2 w-48 bg-surface rounded-lg shadow-lg border border-border z-10 overflow-hidden">
                     <div className="py-1">
                       <Link
                         href="/account"
                         onClick={() => setShowDropdown(false)}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="block w-full text-left px-4 py-2 text-sm font-mono text-ink-mid hover:bg-amber-bg hover:text-amber transition-colors"
                       >
                         My Account
                       </Link>
                       <button
                         onClick={handleSignOut}
-                        className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
+                        className="block w-full text-left px-4 py-2 text-sm font-mono text-ink-mid hover:bg-amber-bg hover:text-amber transition-colors"
                       >
                         Sign Out
                       </button>
@@ -58,7 +58,7 @@ export function AuthHeader() {
             ) : (
               <button
                 onClick={() => setShowAuthModal(true)}
-                className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors"
+                className="bg-amber text-bg font-mono text-sm font-medium px-4 py-2 rounded-lg hover:bg-amber/90 transition-colors"
               >
                 Sign In
               </button>
@@ -66,9 +66,9 @@ export function AuthHeader() {
           </div>
         </div>
       </header>
-      <AuthModal 
-        isOpen={showAuthModal} 
-        onClose={() => setShowAuthModal(false)} 
+      <AuthModal
+        isOpen={showAuthModal}
+        onClose={() => setShowAuthModal(false)}
       />
     </>
   );

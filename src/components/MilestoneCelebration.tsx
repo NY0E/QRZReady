@@ -33,21 +33,21 @@ export default function MilestoneCelebration({ milestone, onClose }: MilestoneCe
   return (
     <>
       {/* Backdrop */}
-      <div 
-        className="fixed inset-0 bg-black bg-opacity-50 z-50 animate-fadeIn"
+      <div
+        className="fixed inset-0 bg-black/70 z-50 animate-fadeIn"
         onClick={onClose}
       />
 
       {/* Modal */}
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4 pointer-events-none">
-        <div 
-          className="bg-white rounded-2xl shadow-2xl max-w-md w-full p-8 pointer-events-auto animate-slideUp"
+        <div
+          className="relative bg-surface border border-border rounded-2xl shadow-2xl max-w-md w-full p-8 pointer-events-auto animate-slideUp"
           onClick={(e) => e.stopPropagation()}
         >
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 text-gray-400 hover:text-gray-600 transition-colors"
+            className="absolute top-4 right-4 text-ink-dim hover:text-ink transition-colors"
             aria-label="Close"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -73,25 +73,25 @@ export default function MilestoneCelebration({ milestone, onClose }: MilestoneCe
           </div>
 
           {/* Title */}
-          <h2 className="text-2xl font-bold text-center text-gray-900 mb-3">
+          <h2 className="text-2xl font-mono font-medium text-center text-ink mb-3">
             {milestone.title}
           </h2>
 
           {/* Message */}
-          <p className="text-center text-gray-700 mb-4">
+          <p className="text-center text-ink-mid mb-4">
             {milestone.message}
           </p>
 
           {/* Divider */}
-          <div className="border-t border-gray-200 my-4" />
+          <div className="border-t border-border my-4" />
 
           {/* Ham Radio Trivia */}
-          <div className="bg-blue-50 rounded-lg p-4 mb-4">
-            <h3 className="text-sm font-semibold text-blue-900 mb-2 flex items-center">
+          <div className="bg-amber-bg border border-amber-dim rounded-lg p-4 mb-4">
+            <h3 className="text-sm font-mono font-medium text-amber mb-2 flex items-center">
               <span className="mr-2">📻</span>
               Ham Radio Trivia
             </h3>
-            <p className="text-sm text-blue-800 leading-relaxed">
+            <p className="text-sm text-ink-mid leading-relaxed">
               {milestone.trivia}
             </p>
           </div>
@@ -100,7 +100,7 @@ export default function MilestoneCelebration({ milestone, onClose }: MilestoneCe
           {milestone.link && (
             <div className="space-y-2">
               {milestone.link.context && (
-                <p className="text-xs text-gray-600 text-center">
+                <p className="text-xs text-ink-dim text-center">
                   {milestone.link.context}
                 </p>
               )}
@@ -108,7 +108,7 @@ export default function MilestoneCelebration({ milestone, onClose }: MilestoneCe
                 href={milestone.link.url}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="block w-full bg-blue-600 text-white text-center py-3 px-4 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+                className="block w-full bg-amber text-bg text-center py-3 px-4 rounded-lg hover:bg-amber/90 transition-colors font-mono font-medium"
               >
                 {milestone.link.text} →
               </a>
@@ -118,7 +118,7 @@ export default function MilestoneCelebration({ milestone, onClose }: MilestoneCe
           {/* Continue button */}
           <button
             onClick={onClose}
-            className={`w-full bg-gray-100 text-gray-700 py-3 px-4 rounded-lg hover:bg-gray-200 transition-colors font-medium ${
+            className={`w-full bg-bg border border-border text-ink-mid py-3 px-4 rounded-lg hover:border-amber-dim hover:text-ink transition-colors font-mono font-medium ${
               milestone.link ? 'mt-3' : 'mt-4'
             }`}
           >

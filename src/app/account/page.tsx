@@ -18,9 +18,9 @@ export default function AccountPage() {
 
   if (!user) {
     return (
-      <div className="min-h-screen bg-gray-50">
+      <div className="min-h-screen bg-bg">
         <div className="max-w-3xl mx-auto px-4 py-8 text-center">
-          <p className="text-gray-700">Sign in to view your account.</p>
+          <p className="text-ink-mid">Sign in to view your account.</p>
         </div>
       </div>
     );
@@ -59,31 +59,31 @@ export default function AccountPage() {
   };
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-bg">
       <div className="max-w-3xl mx-auto px-4 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Your Account</h1>
-          <p className="text-gray-600">{user.email}{user.displayName ? ` · ${user.displayName}` : ''}</p>
+          <h1 className="text-3xl font-mono font-medium text-ink mb-2">Your Account</h1>
+          <p className="text-ink-mid font-mono text-sm">{user.email}{user.displayName ? ` · ${user.displayName}` : ''}</p>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Download your data</h2>
-          <p className="text-gray-700 mb-4">
+        <div className="bg-surface rounded-lg border border-border p-6 mb-6">
+          <h2 className="text-xl font-mono font-medium text-ink mb-2">Download your data</h2>
+          <p className="text-ink-mid mb-4">
             Get a copy of everything stored under your account: your profile, quiz progress, and test
             scores, as a JSON file.
           </p>
           <button
             onClick={handleExport}
             disabled={exporting}
-            className="bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="bg-amber text-bg font-mono font-medium py-2 px-4 rounded-lg hover:bg-amber/90 disabled:opacity-50 transition-colors"
           >
             {exporting ? 'Preparing…' : 'Download my data'}
           </button>
         </div>
 
-        <div className="bg-white rounded-lg shadow-sm border border-red-200 p-6 mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">Delete your account</h2>
-          <p className="text-gray-700 mb-4">
+        <div className="bg-surface rounded-lg border border-red-900/60 p-6 mb-6">
+          <h2 className="text-xl font-mono font-medium text-ink mb-2">Delete your account</h2>
+          <p className="text-ink-mid mb-4">
             This permanently deletes your account and all study progress and test scores. This can&apos;t
             be undone.
           </p>
@@ -91,13 +91,13 @@ export default function AccountPage() {
           {!confirmOpen ? (
             <button
               onClick={() => setConfirmOpen(true)}
-              className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 transition-colors"
+              className="bg-red-900 text-red-100 font-mono font-medium py-2 px-4 rounded-lg hover:bg-red-800 transition-colors"
             >
               Delete my account
             </button>
           ) : (
             <div className="space-y-3">
-              <label htmlFor="confirmPassword" className="block text-sm font-medium text-gray-700">
+              <label htmlFor="confirmPassword" className="block text-sm font-mono text-ink-mid">
                 Confirm your password to permanently delete your account
               </label>
               <input
@@ -105,19 +105,19 @@ export default function AccountPage() {
                 id="confirmPassword"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-red-500 focus:border-red-500"
+                className="w-full px-3 py-2 bg-bg border border-border rounded-lg text-ink focus:ring-1 focus:ring-red-600 focus:border-red-600 outline-none transition-colors"
               />
               <div className="flex gap-3">
                 <button
                   onClick={handleDelete}
                   disabled={deleting || !password}
-                  className="bg-red-600 text-white py-2 px-4 rounded-lg hover:bg-red-700 disabled:opacity-50 transition-colors"
+                  className="bg-red-900 text-red-100 font-mono font-medium py-2 px-4 rounded-lg hover:bg-red-800 disabled:opacity-50 transition-colors"
                 >
                   {deleting ? 'Deleting…' : 'Permanently delete'}
                 </button>
                 <button
                   onClick={() => { setConfirmOpen(false); setPassword(''); setError(''); }}
-                  className="bg-gray-100 text-gray-700 py-2 px-4 rounded-lg hover:bg-gray-200 transition-colors"
+                  className="bg-bg border border-border text-ink-mid font-mono py-2 px-4 rounded-lg hover:text-ink hover:border-amber-dim transition-colors"
                 >
                   Cancel
                 </button>
@@ -125,16 +125,16 @@ export default function AccountPage() {
             </div>
           )}
 
-          {error && <div className="text-red-600 text-sm mt-3">{error}</div>}
+          {error && <div className="text-red-400 text-sm font-mono mt-3">{error}</div>}
         </div>
 
-        <div className="text-sm text-gray-500 mb-8">
-          See our <Link href="/privacy" className="text-blue-600 hover:text-blue-800">Privacy Policy</Link> for
+        <div className="text-sm text-ink-dim mb-8">
+          See our <Link href="/privacy" className="text-amber hover:text-amber/80 transition-colors">Privacy Policy</Link> for
           details on what we collect and why.
         </div>
 
         <div className="text-center">
-          <Link href="/" className="text-blue-600 hover:text-blue-800 font-medium">
+          <Link href="/" className="text-amber hover:text-amber/80 font-mono font-medium transition-colors">
             ← Back to QRZ Ready
           </Link>
         </div>

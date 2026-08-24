@@ -21,12 +21,12 @@ export default function ExamPage({ params }: ExamPageProps) {
         const resolvedParams = await params;
         const type = resolvedParams.examType as ExamType;
         setExamType(type);
-        
+
         const questionData = await getExamData(type);
         if (questionData.length === 0) {
           throw new Error(`No questions found for ${type} exam`);
         }
-        
+
         setQuestions(questionData);
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to load questions');
@@ -40,10 +40,10 @@ export default function ExamPage({ params }: ExamPageProps) {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-bg flex items-center justify-center">
         <div className="text-center">
-          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading exam questions...</p>
+          <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-amber mx-auto mb-4"></div>
+          <p className="text-ink-mid font-mono text-sm">Loading exam questions...</p>
         </div>
       </div>
     );
@@ -51,13 +51,13 @@ export default function ExamPage({ params }: ExamPageProps) {
 
   if (error) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-center p-6 bg-red-50 rounded-lg max-w-md">
-          <h2 className="text-lg font-semibold text-red-800 mb-2">Error Loading Questions</h2>
-          <p className="text-red-600 mb-4">{error}</p>
-          <button 
+      <div className="min-h-screen bg-bg flex items-center justify-center">
+        <div className="text-center p-6 bg-red-950/30 border border-red-900 rounded-lg max-w-md">
+          <h2 className="text-lg font-mono font-medium text-red-400 mb-2">Error Loading Questions</h2>
+          <p className="text-red-300/80 text-sm mb-4">{error}</p>
+          <button
             onClick={() => window.location.reload()}
-            className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+            className="bg-red-900 text-red-100 font-mono px-4 py-2 rounded hover:bg-red-800 transition-colors"
           >
             Try Again
           </button>
@@ -77,7 +77,7 @@ export default function ExamPage({ params }: ExamPageProps) {
   }, {} as Record<string, Question[]>);
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-bg">
       <div className="max-w-6xl mx-auto px-4 py-8">
         {examType === 'technician' && (
           <AnnouncementBanner
@@ -90,79 +90,81 @@ export default function ExamPage({ params }: ExamPageProps) {
 
         {/* Header */}
         <div className="text-center mb-8">
-          <h1 className="text-3xl md:text-4xl font-bold text-gray-900 mb-2 capitalize">
+          <h1 className="text-3xl md:text-4xl font-mono font-medium text-ink mb-2 capitalize">
             {examType} License Exam
           </h1>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-ink-mid">
             {questions.length} questions loaded from official question pool
           </p>
         </div>
 
         {/* Quick Stats */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 mb-8">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Question Pool Overview</h2>
+        <div className="bg-surface rounded-lg border border-border p-6 mb-8">
+          <div className="text-xs font-mono uppercase tracking-[2px] text-ink-dim mb-4">Question Pool Overview</div>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             <div className="text-center">
-              <div className="text-2xl font-bold text-blue-600">{questions.length}</div>
-              <div className="text-sm text-gray-600">Total Questions</div>
+              <div className="text-2xl font-mono font-medium text-amber">{questions.length}</div>
+              <div className="text-sm text-ink-mid">Total Questions</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-green-600">{Object.keys(subelements).length}</div>
-              <div className="text-sm text-gray-600">Subelements</div>
+              <div className="text-2xl font-mono font-medium text-amber">{Object.keys(subelements).length}</div>
+              <div className="text-sm text-ink-mid">Subelements</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-purple-600">
+              <div className="text-2xl font-mono font-medium text-amber">
                 {examType === 'technician' ? 35 : examType === 'general' ? 35 : 50}
               </div>
-              <div className="text-sm text-gray-600">Exam Questions</div>
+              <div className="text-sm text-ink-mid">Exam Questions</div>
             </div>
             <div className="text-center">
-              <div className="text-2xl font-bold text-orange-600">
+              <div className="text-2xl font-mono font-medium text-amber">
                 {examType === 'technician' ? 26 : examType === 'general' ? 26 : 37}
               </div>
-              <div className="text-sm text-gray-600">To Pass</div>
+              <div className="text-sm text-ink-mid">To Pass</div>
             </div>
           </div>
         </div>
 
         {/* Study Options */}
         <div className="grid md:grid-cols-2 gap-6 mb-8">
-          <div 
+          <div
             onClick={() => window.location.href = `/${examType}/learn`}
-            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-md transition-shadow"
+            className="group relative bg-surface rounded-lg border border-border p-6 pl-7 cursor-pointer hover:border-amber-dim transition-colors overflow-hidden"
           >
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">📚 Start Learning</h3>
-            <p className="text-gray-600 mb-4">
+            <span className="absolute left-0 top-0 bottom-0 w-[2px] bg-amber-dim group-hover:bg-amber transition-colors" />
+            <h3 className="text-xl font-mono font-medium text-ink mb-2">📚 Start Learning</h3>
+            <p className="text-ink-mid text-sm mb-4">
               Study with adaptive flashcards that adjust difficulty as you improve.
             </p>
-            <div className="text-blue-600 font-medium">Begin Study Session →</div>
+            <div className="text-amber font-mono text-sm">Begin Study Session →</div>
           </div>
-          
-          <div 
+
+          <div
             onClick={() => window.location.href = `/${examType}/practice`}
-            className="bg-white rounded-lg shadow-sm border border-gray-200 p-6 cursor-pointer hover:shadow-md transition-shadow"
+            className="group relative bg-surface rounded-lg border border-border p-6 pl-7 cursor-pointer hover:border-amber-dim transition-colors overflow-hidden"
           >
-            <h3 className="text-xl font-semibold text-gray-900 mb-2">🎯 Practice Test</h3>
-            <p className="text-gray-600 mb-4">
+            <span className="absolute left-0 top-0 bottom-0 w-[2px] bg-amber-dim group-hover:bg-amber transition-colors" />
+            <h3 className="text-xl font-mono font-medium text-ink mb-2">🎯 Practice Test</h3>
+            <p className="text-ink-mid text-sm mb-4">
               Take a realistic practice exam with proper timing and scoring.
             </p>
-            <div className="text-blue-600 font-medium">Start Practice Test →</div>
+            <div className="text-amber font-mono text-sm">Start Practice Test →</div>
           </div>
         </div>
 
         {/* Subelement Breakdown */}
-        <div className="bg-white rounded-lg shadow-sm border border-gray-200 p-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-4">Question Breakdown by Topic</h2>
+        <div className="bg-surface rounded-lg border border-border p-6">
+          <div className="text-xs font-mono uppercase tracking-[2px] text-ink-dim mb-4">Question Breakdown by Topic</div>
           <div className="grid gap-3">
             {Object.entries(subelements).sort().map(([subelement, subQuestions]) => (
-              <div key={subelement} className="flex justify-between items-center p-3 bg-gray-50 rounded">
+              <div key={subelement} className="flex justify-between items-center p-3 bg-bg border border-border rounded">
                 <div>
-                  <span className="font-medium text-gray-900">{subelement}</span>
-                  <span className="text-gray-600 ml-2">
+                  <span className="font-mono font-medium text-ink">{subelement}</span>
+                  <span className="text-ink-mid ml-2 text-sm">
                     {subQuestions[0]?.question.split(' ').slice(0, 8).join(' ')}...
                   </span>
                 </div>
-                <span className="text-sm text-gray-500">{subQuestions.length} questions</span>
+                <span className="text-sm text-ink-dim font-mono">{subQuestions.length} questions</span>
               </div>
             ))}
           </div>

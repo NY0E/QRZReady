@@ -30,26 +30,26 @@ export default function PomodoroBreak({ factoid, onClose }: PomodoroBreakProps) 
 
   const playBreakEndSound = () => {
     if (audioPlayed) return;
-    
+
     // Create a gentle notification sound using Web Audio API
     const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
     const oscillator = audioContext.createOscillator();
     const gainNode = audioContext.createGain();
-    
+
     oscillator.connect(gainNode);
     gainNode.connect(audioContext.destination);
-    
+
     oscillator.frequency.value = 800; // Gentle tone
     oscillator.type = 'sine';
-    
+
     gainNode.gain.setValueAtTime(0.3, audioContext.currentTime);
     gainNode.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + 1);
-    
+
     oscillator.start(audioContext.currentTime);
     oscillator.stop(audioContext.currentTime + 1);
-    
+
     setAudioPlayed(true);
-    
+
     // Show browser notification if permitted
     if (Notification.permission === 'granted') {
       new Notification('Break time is over!', {
@@ -68,32 +68,32 @@ export default function PomodoroBreak({ factoid, onClose }: PomodoroBreakProps) 
   const progress = ((BREAK_DURATION - timeRemaining) / BREAK_DURATION) * 100;
 
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
-      <div className="bg-white rounded-lg shadow-xl max-w-2xl w-full p-8">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-4">
+      <div className="bg-surface border border-border rounded-lg shadow-2xl max-w-2xl w-full p-8">
         {/* Header */}
         <div className="text-center mb-6">
           <div className="text-6xl mb-4">🍅</div>
-          <h2 className="text-3xl font-bold text-gray-800 mb-2">
+          <h2 className="text-3xl font-mono font-medium text-ink mb-2">
             Pomodoro Break Time!
           </h2>
-          <p className="text-lg text-gray-600">
+          <p className="text-lg text-ink-mid">
             You've been studying for 25 minutes - great work!
           </p>
         </div>
 
         {/* Factoid */}
-        <div className="bg-blue-50 rounded-lg p-6 mb-6">
-          <h3 className="text-xl font-semibold text-blue-900 mb-3">
+        <div className="bg-amber-bg border border-amber-dim rounded-lg p-6 mb-6">
+          <h3 className="text-xl font-mono font-medium text-amber mb-3">
             📻 Did You Know?
           </h3>
-          <p className="text-gray-700 leading-relaxed mb-4">
+          <p className="text-ink-mid leading-relaxed mb-4">
             {factoid.factoid}
           </p>
           <a
             href={factoid.articleUrl}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center text-blue-600 hover:text-blue-800 font-medium"
+            className="inline-flex items-center text-amber hover:text-amber/80 font-medium transition-colors"
           >
             📖 Read More: {factoid.articleTitle}
             <svg
@@ -114,19 +114,19 @@ export default function PomodoroBreak({ factoid, onClose }: PomodoroBreakProps) 
 
         {/* Timer */}
         <div className="text-center mb-6">
-          <div className="text-5xl font-bold text-gray-800 mb-2">
+          <div className="text-5xl font-mono font-medium text-ink mb-2">
             ⏱️ {formatTime(timeRemaining)}
           </div>
-          <p className="text-gray-600 mb-4">
+          <p className="text-ink-mid mb-4">
             {timeRemaining === 0
               ? '✨ Break is over! Ready to continue?'
               : 'Take a moment to stretch and rest your eyes'}
           </p>
-          
+
           {/* Progress Bar */}
-          <div className="w-full bg-gray-200 rounded-full h-3 mb-4">
+          <div className="w-full bg-border rounded-full h-3 mb-4">
             <div
-              className="bg-blue-600 h-3 rounded-full transition-all duration-1000"
+              className="bg-amber h-3 rounded-full transition-all duration-1000"
               style={{ width: `${progress}%` }}
             />
           </div>
@@ -136,14 +136,14 @@ export default function PomodoroBreak({ factoid, onClose }: PomodoroBreakProps) 
         <div className="flex gap-4">
           <button
             onClick={onClose}
-            className="flex-1 bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors font-medium"
+            className="flex-1 bg-amber text-bg px-6 py-3 rounded-lg hover:bg-amber/90 transition-colors font-mono font-medium"
           >
             {timeRemaining === 0 ? 'Continue Studying →' : 'Skip Break & Continue'}
           </button>
         </div>
 
         {/* Settings hint */}
-        <p className="text-center text-sm text-gray-500 mt-4">
+        <p className="text-center text-sm text-ink-dim mt-4">
           You can disable Pomodoro breaks in your account settings
         </p>
       </div>

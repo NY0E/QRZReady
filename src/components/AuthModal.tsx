@@ -72,18 +72,22 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
   if (!isOpen) return null;
 
+  const inputClass = "w-full px-3 py-2 bg-bg border border-border rounded-lg text-ink placeholder:text-ink-dim focus:ring-1 focus:ring-amber focus:border-amber outline-none transition-colors";
+  const labelClass = "block text-sm font-mono text-ink-mid mb-1";
+  const linkClass = "text-amber hover:text-amber/80 transition-colors";
+
   return (
-    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
-      <div className="bg-white rounded-lg max-w-md w-full p-6">
+    <div className="fixed inset-0 bg-black/70 flex items-center justify-center p-4 z-50">
+      <div className="bg-surface border border-border rounded-lg max-w-md w-full p-6">
         <div className="flex justify-between items-center mb-4">
-          <h2 className="text-xl font-bold text-gray-900">
+          <h2 className="text-xl font-mono font-medium text-ink">
             {mode === 'login' && 'Sign In'}
             {mode === 'register' && 'Create Account'}
             {mode === 'reset' && 'Reset Password'}
           </h2>
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-ink-dim hover:text-ink transition-colors"
           >
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
@@ -93,7 +97,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
         <form onSubmit={handleSubmit} className="space-y-4">
           <div>
-            <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-1">
+            <label htmlFor="email" className={labelClass}>
               Email
             </label>
             <input
@@ -102,13 +106,13 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               required
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+              className={inputClass}
             />
           </div>
 
           {mode !== 'reset' && (
             <div>
-              <label htmlFor="password" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="password" className={labelClass}>
                 Password
               </label>
               <input
@@ -118,14 +122,14 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 minLength={6}
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className={inputClass}
               />
             </div>
           )}
 
           {mode === 'register' && (
             <div>
-              <label htmlFor="callSign" className="block text-sm font-medium text-gray-700 mb-1">
+              <label htmlFor="callSign" className={labelClass}>
                 Call Sign (Optional)
               </label>
               <input
@@ -134,51 +138,51 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 value={callSign}
                 onChange={(e) => setCallSign(e.target.value.toUpperCase())}
                 placeholder="NY0E"
-                className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
+                className={inputClass}
               />
             </div>
           )}
 
           {mode === 'register' && (
             <div className="space-y-2">
-              <label className="flex items-start gap-2 text-sm text-gray-700">
+              <label className="flex items-start gap-2 text-sm text-ink-mid">
                 <input
                   type="checkbox"
                   checked={ageConfirmed}
                   onChange={(e) => setAgeConfirmed(e.target.checked)}
-                  className="mt-0.5"
+                  className="mt-0.5 accent-amber"
                 />
                 <span>I confirm I am 13 years of age or older.</span>
               </label>
-              <label className="flex items-start gap-2 text-sm text-gray-700">
+              <label className="flex items-start gap-2 text-sm text-ink-mid">
                 <input
                   type="checkbox"
                   checked={termsAccepted}
                   onChange={(e) => setTermsAccepted(e.target.checked)}
-                  className="mt-0.5"
+                  className="mt-0.5 accent-amber"
                 />
                 <span>
                   I agree to the{' '}
-                  <a href="/terms" target="_blank" className="text-blue-600 hover:text-blue-800">Terms of Service</a>
+                  <a href="/terms" target="_blank" className={linkClass}>Terms of Service</a>
                   {' '}and{' '}
-                  <a href="/privacy" target="_blank" className="text-blue-600 hover:text-blue-800">Privacy Policy</a>.
+                  <a href="/privacy" target="_blank" className={linkClass}>Privacy Policy</a>.
                 </span>
               </label>
             </div>
           )}
 
           {error && (
-            <div className="text-red-600 text-sm">{error}</div>
+            <div className="text-red-400 text-sm font-mono">{error}</div>
           )}
 
           {message && (
-            <div className="text-green-600 text-sm">{message}</div>
+            <div className="text-emerald-400 text-sm font-mono">{message}</div>
           )}
 
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-lg hover:bg-blue-700 disabled:opacity-50 transition-colors"
+            className="w-full bg-amber text-bg font-mono font-medium py-2 px-4 rounded-lg hover:bg-amber/90 disabled:opacity-50 transition-colors"
           >
             {loading ? 'Processing...' : (
               mode === 'login' ? 'Sign In' :
@@ -188,38 +192,38 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
           </button>
         </form>
 
-        <div className="mt-4 text-center text-sm">
+        <div className="mt-4 text-center text-sm font-mono">
           {mode === 'login' && (
             <>
               <button
                 onClick={() => switchMode('register')}
-                className="text-blue-600 hover:text-blue-800"
+                className={linkClass}
               >
                 Don't have an account? Sign up
               </button>
               <br />
               <button
                 onClick={() => switchMode('reset')}
-                className="text-blue-600 hover:text-blue-800 mt-2"
+                className={`${linkClass} mt-2`}
               >
                 Forgot password?
               </button>
             </>
           )}
-          
+
           {mode === 'register' && (
             <button
               onClick={() => switchMode('login')}
-              className="text-blue-600 hover:text-blue-800"
+              className={linkClass}
             >
               Already have an account? Sign in
             </button>
           )}
-          
+
           {mode === 'reset' && (
             <button
               onClick={() => switchMode('login')}
-              className="text-blue-600 hover:text-blue-800"
+              className={linkClass}
             >
               Back to sign in
             </button>

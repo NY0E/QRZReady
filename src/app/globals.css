@@ -3,25 +3,24 @@
 @tailwind utilities;
 
 :root {
-  --foreground-rgb: 0, 0, 0;
-  --background-start-rgb: 214, 219, 220;
-  --background-end-rgb: 255, 255, 255;
+  --bg: #0e1117;
+  --surface: #161b24;
+  --border: #252d3a;
+  --amber: #e8a020;
+  --amber-dim: #7a4f08;
+  --amber-bg: #1a1000;
+  --ink: #e8e0d5;
+  --ink-mid: #9a9080;
+  --ink-dim: #4a4540;
 }
 
-@media (prefers-color-scheme: dark) {
-  :root {
-    --foreground-rgb: 255, 255, 255;
-    --background-start-rgb: 0, 0, 0;
-    --background-end-rgb: 0, 0, 0;
-  }
-}
-
+html,
 body {
-  color: rgb(var(--foreground-rgb));
-  background: linear-gradient(
-      to bottom,
-      transparent,
-      rgb(var(--background-end-rgb))
-    )
-    rgb(var(--background-start-rgb));
+  background: var(--bg);
+  color: var(--ink);
+}
+
+::selection {
+  background: var(--amber-dim);
+  color: var(--ink);
 }
