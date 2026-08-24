@@ -11,6 +11,7 @@ import MilestoneCelebration from '@/components/MilestoneCelebration';
 import PomodoroBreak from '@/components/PomodoroBreak';
 import { getRandomStudyBreakFactoid, StudyBreakFactoid } from '@/data/studyBreakFactoids';
 import AnnouncementBanner from '@/components/AnnouncementBanner';
+import { startStudySession, touchStudySessionEnd, logAttempt, logPassMilestone } from '@/utils/studyLogging';
 
 interface LearnPageProps {
   params: Promise<{ examType: string }>;
@@ -39,13 +40,67 @@ export default function LearnPage({ params }: LearnPageProps) {
   const [showPomodoroBreak, setShowPomodoroBreak] = useState(false);
   const [currentFactoid, setCurrentFactoid] = useState<StudyBreakFactoid | null>(null);
 
-  // Memoize shuffled answers to prevent re-shuffling on re-renders
-  const shuffledAnswers = useMemo(() => {
-    if (!studySet[currentQuestionIndex]) return [];
-    return [...studySet[currentQuestionIndex].answers]
-      .map((answer, index) => ({ text: answer, index }))
-      .sort(() => Math.random() - 0.5);
-  }, [studySet, currentQuestionIndex]);
+  // Instrumentation: study session + per-question response timing
+  const [studySessionId, setStudySessionId] = useState<string | null>(null);
+  const [questionDisplayedAt, setQuestionDisplayedAt] = useState<number>(Date.now());
+
+  // Adaptive difficulty: memoized on the question + mastery level, NOT on
+  // selectedAnswer/showResult, so the distractor set shown doesn't change
+  // out from under the user after they click an answer.
+  const adaptiveAnswers = useMemo(() => {
+    const question = studySet[currentQuestionIndex];
+    if (!question) {
+      return { stage: '', stageColor: '', availableAnswers: [] as Array<{ text: string; index: number }>, fullSetUnlocked: false, distractorCount: 0 };
+    }
+
+    const consecutiveCorrect = userProgress[question.id]?.consecutiveCorrect || 0;
+    let stage: string;
+    let stageColor: string;
+    let availableAnswers: Array<{ text: string; index: number }>;
+
+    if (consecutiveCorrect === 0) {
+      stage = "First Time (1 choice)";
+      stageColor = "text-sky-400";
+      availableAnswers = [{ text: question.answers[question.correct], index: question.correct }];
+    } else if (consecutiveCorrect === 1) {
+      stage = "Basic Practice (2 choices)";
+      stageColor = "text-orange-400";
+      const wrongAnswers = question.answers
+        .map((answer, index) => ({ text: answer, index }))
+        .filter(answer => answer.index !== question.correct);
+      const randomWrong = wrongAnswers[Math.floor(Math.random() * wrongAnswers.length)];
+      availableAnswers = [
+        { text: question.answers[question.correct], index: question.correct },
+        randomWrong
+      ].sort(() => Math.random() - 0.5);
+    } else if (consecutiveCorrect <= 3) {
+      stage = "Intermediate Practice (3 choices)";
+      stageColor = "text-yellow-400";
+      const wrongAnswers = question.answers
+        .map((answer, index) => ({ text: answer, index }))
+        .filter(answer => answer.index !== question.correct);
+      const randomWrongs = wrongAnswers.sort(() => Math.random() - 0.5).slice(0, 2);
+      availableAnswers = [
+        { text: question.answers[question.correct], index: question.correct },
+        ...randomWrongs
+      ].sort(() => Math.random() - 0.5);
+    } else {
+      stage = "Mastery Mode (4 choices)";
+      stageColor = "text-emerald-400";
+      availableAnswers = [...question.answers]
+        .map((answer, index) => ({ text: answer, index }))
+        .sort(() => Math.random() - 0.5);
+    }
+
+    return {
+      stage,
+      stageColor,
+      availableAnswers,
+      fullSetUnlocked: consecutiveCorrect >= 4,
+      distractorCount: availableAnswers.length - 1
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [studySet, currentQuestionIndex, userProgress[studySet[currentQuestionIndex]?.id]?.consecutiveCorrect]);
 
   // Intelligent study set generation
   const generateStudySet = (questions: Question[], progress: UserProgress): Question[] => {
@@ -176,6 +231,42 @@ export default function LearnPage({ params }: LearnPageProps) {
     loadData();
   }, [params]);
 
+  // Instrumentation: start a study_sessions row once examType is known,
+  // and mark it "ended" (a last-known-active heartbeat) on tab hide / unmount.
+  useEffect(() => {
+    if (!examType) return;
+
+    let sessionId: string | null = null;
+    let cancelled = false;
+
+    startStudySession(examType).then(id => {
+      if (!cancelled) {
+        sessionId = id;
+        setStudySessionId(id);
+      }
+    });
+
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'hidden' && sessionId) {
+        touchStudySessionEnd(sessionId);
+      }
+    };
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+
+    return () => {
+      cancelled = true;
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      if (sessionId) {
+        touchStudySessionEnd(sessionId);
+      }
+    };
+  }, [examType]);
+
+  // Reset the response-time clock whenever a new question is shown
+  useEffect(() => {
+    setQuestionDisplayedAt(Date.now());
+  }, [currentQuestionIndex, studySet]);
+
     // Pomodoro timer - check every minute if 25 minutes have passed
   useEffect(() => {
     if (!pomodoroStartTime) {
@@ -200,6 +291,18 @@ export default function LearnPage({ params }: LearnPageProps) {
     return () => clearInterval(checkInterval);
   }, [pomodoroStartTime, showPomodoroBreak]);
 
+  const handleReportPass = () => {
+    if (!examType) return;
+    const scoreInput = window.prompt('What score did you get (0-100)? Leave blank to skip.');
+    const parsedScore = scoreInput ? parseFloat(scoreInput) : NaN;
+    logPassMilestone({
+      examType,
+      milestoneType: 'real_exam',
+      score: Number.isFinite(parsedScore) ? parsedScore : undefined
+    });
+    window.alert('Logged — thanks, and congratulations! 🎉');
+  };
+
   const handleClosePomodoroBreak = () => {
     setShowPomodoroBreak(false);
     // Reset timer to start new 25-minute session
@@ -215,8 +318,26 @@ export default function LearnPage({ params }: LearnPageProps) {
     if (selectedAnswer !== null && examType && studySet.length > 0) {
       const currentQuestion = studySet[currentQuestionIndex];
       const isCorrect = selectedAnswer === currentQuestion.correct;
+      const consecutiveCorrectBefore = userProgress[currentQuestion.id]?.consecutiveCorrect || 0;
 
-  
+      // Instrumentation: log this attempt against the distractor set that was
+      // actually shown (adaptiveAnswers is memoized on this exact question)
+      logAttempt({
+        sessionId: studySessionId,
+        examType,
+        questionId: currentQuestion.id,
+        consecutiveCorrectBefore,
+        distractorCount: adaptiveAnswers.distractorCount,
+        distractorsShown: adaptiveAnswers.availableAnswers
+          .filter(a => a.index !== currentQuestion.correct)
+          .map(a => a.text),
+        fullSetUnlocked: adaptiveAnswers.fullSetUnlocked,
+        selectedAnswerIndex: selectedAnswer,
+        correctAnswerIndex: currentQuestion.correct,
+        isCorrect,
+        responseTimeMs: Date.now() - questionDisplayedAt
+      });
+
       // Update session stats
       setSessionStats(prev => ({
         questionsAnswered: prev.questionsAnswered + 1,
@@ -346,45 +467,8 @@ const getMasteryColor = () => {
   return "text-amber";
 };
 
-  // Adaptive difficulty logic
-  let availableAnswers: Array<{ text: string; index: number }>;
-  let stage: string;
-  let stageColor: string;
-
-  if (consecutiveCorrect === 0) {
-    stage = "First Time (1 choice)";
-    stageColor = "text-sky-400";
-    availableAnswers = shuffledAnswers;
-      }else if (consecutiveCorrect === 1) {
-    stage = "Basic Practice (2 choices)";
-    stageColor = "text-orange-400";
-    const wrongAnswers = currentQuestion.answers
-      .map((answer, index) => ({ text: answer, index }))
-      .filter(answer => answer.index !== currentQuestion.correct);
-    
-    const randomWrong = wrongAnswers[Math.floor(Math.random() * wrongAnswers.length)];
-      
-  availableAnswers = [
-    { text: currentQuestion.answers[currentQuestion.correct], index: currentQuestion.correct },
-    randomWrong
-  ].sort(() => Math.random() - 0.5);
-    
-      }
-    else if (consecutiveCorrect <= 3) {
-    stage = "Intermediate Practice (3 choices)";
-    stageColor = "text-yellow-400";
-    const wrongAnswers = currentQuestion.answers
-    .map((answer, index) => ({ text: answer, index }))
-    .filter(answer => answer.index !== currentQuestion.correct);
-
-    const randomWrongs = wrongAnswers.sort(() => Math.random() - 0.5).slice(0, 2);
-
-          availableAnswers = shuffledAnswers;
-  } else {
-    stage = "Mastery Mode (4 choices)";
-    stageColor = "text-emerald-400";
-          availableAnswers = shuffledAnswers;
-    }
+  // Adaptive difficulty (memoized above in adaptiveAnswers, keyed on question + mastery level)
+  const { stage, stageColor, availableAnswers, fullSetUnlocked } = adaptiveAnswers;
 
   return (
     <div className="min-h-screen bg-bg">
@@ -566,6 +650,16 @@ const getMasteryColor = () => {
             Studying as: {user.displayName || user.email} • Intelligent Study Set: {studySet.length} questions
           </div>
         )}
+
+        {/* Trial instrumentation: self-reported pass milestone */}
+        <div className="mt-2 text-center">
+          <button
+            onClick={handleReportPass}
+            className="text-xs text-ink-dim hover:text-amber font-mono underline transition-colors"
+          >
+            🎉 Passed your {examType} exam? Report it
+          </button>
+        </div>
 
               {/* Milestone Celebration Modal */}
       {currentMilestone && (
