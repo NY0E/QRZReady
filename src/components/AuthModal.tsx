@@ -13,6 +13,8 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [callSign, setCallSign] = useState('');
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
+  const [termsAccepted, setTermsAccepted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [message, setMessage] = useState('');
@@ -30,6 +32,16 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
         await login(email, password);
         onClose();
       } else if (mode === 'register') {
+        if (!ageConfirmed) {
+          setError('You must confirm you are 13 or older to create an account.');
+          setLoading(false);
+          return;
+        }
+        if (!termsAccepted) {
+          setError('You must agree to the Terms of Service and Privacy Policy.');
+          setLoading(false);
+          return;
+        }
         await register(email, password, callSign || undefined);
         onClose();
       } else if (mode === 'reset') {
@@ -47,6 +59,8 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
     setEmail('');
     setPassword('');
     setCallSign('');
+    setAgeConfirmed(false);
+    setTermsAccepted(false);
     setError('');
     setMessage('');
   };
@@ -122,6 +136,34 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
                 placeholder="NY0E"
                 className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
               />
+            </div>
+          )}
+
+          {mode === 'register' && (
+            <div className="space-y-2">
+              <label className="flex items-start gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={ageConfirmed}
+                  onChange={(e) => setAgeConfirmed(e.target.checked)}
+                  className="mt-0.5"
+                />
+                <span>I confirm I am 13 years of age or older.</span>
+              </label>
+              <label className="flex items-start gap-2 text-sm text-gray-700">
+                <input
+                  type="checkbox"
+                  checked={termsAccepted}
+                  onChange={(e) => setTermsAccepted(e.target.checked)}
+                  className="mt-0.5"
+                />
+                <span>
+                  I agree to the{' '}
+                  <a href="/terms" target="_blank" className="text-blue-600 hover:text-blue-800">Terms of Service</a>
+                  {' '}and{' '}
+                  <a href="/privacy" target="_blank" className="text-blue-600 hover:text-blue-800">Privacy Policy</a>.
+                </span>
+              </label>
             </div>
           )}
 

@@ -1,16 +1,20 @@
 'use client';
 
 import { createContext, useContext, useEffect, useState } from 'react';
-import { 
+import {
   User,
   signInWithEmailAndPassword,
   createUserWithEmailAndPassword,
   signOut,
   onAuthStateChanged,
   sendPasswordResetEmail,
-  updateProfile
+  updateProfile,
+  deleteUser,
+  reauthenticateWithCredential,
+  EmailAuthProvider
 } from 'firebase/auth';
-import { auth } from '@/lib/firebase';
+import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import { auth, db } from '@/lib/firebase';
 
 interface AuthContextType {
   user: User | null;
@@ -19,6 +23,8 @@ interface AuthContextType {
   register: (email: string, password: string, callSign?: string) => Promise<void>;
   logout: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
+  exportUserData: () => Promise<Record<string, unknown>>;
+  deleteAccount: (password: string) => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -58,13 +64,53 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     await sendPasswordResetEmail(auth, email);
   };
 
+  const exportUserData = async (): Promise<Record<string, unknown>> => {
+    const currentUser = auth.currentUser;
+    if (!currentUser) throw new Error('You must be signed in to export your data.');
+
+    const progressSnap = await getDocs(collection(db, 'users', currentUser.uid, 'progress'));
+    const scoresSnap = await getDocs(collection(db, 'users', currentUser.uid, 'scores'));
+
+    return {
+      account: {
+        uid: currentUser.uid,
+        email: currentUser.email,
+        callSign: currentUser.displayName,
+        createdAt: currentUser.metadata.creationTime,
+      },
+      progress: Object.fromEntries(progressSnap.docs.map((d) => [d.id, d.data()])),
+      scores: scoresSnap.docs.map((d) => d.data()),
+      exportedAt: new Date().toISOString(),
+    };
+  };
+
+  const deleteAccount = async (password: string) => {
+    const currentUser = auth.currentUser;
+    if (!currentUser || !currentUser.email) throw new Error('You must be signed in to delete your account.');
+
+    const credential = EmailAuthProvider.credential(currentUser.email, password);
+    await reauthenticateWithCredential(currentUser, credential);
+
+    const progressSnap = await getDocs(collection(db, 'users', currentUser.uid, 'progress'));
+    const scoresSnap = await getDocs(collection(db, 'users', currentUser.uid, 'scores'));
+    await Promise.all([
+      ...progressSnap.docs.map((d) => deleteDoc(d.ref)),
+      ...scoresSnap.docs.map((d) => deleteDoc(d.ref)),
+      deleteDoc(doc(db, 'users', currentUser.uid)),
+    ]);
+
+    await deleteUser(currentUser);
+  };
+
   const value = {
     user,
     loading,
     login,
     register,
     logout,
-    resetPassword
+    resetPassword,
+    exportUserData,
+    deleteAccount
   };
 
   return (
