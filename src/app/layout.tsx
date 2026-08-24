@@ -1,4 +1,4 @@
-import type { Metadata } from 'next'
+import type { Metadata, Viewport } from 'next'
 import { Inter, IBM_Plex_Mono } from 'next/font/google'
 import './globals.css'
 import { AuthProvider } from '@/contexts/AuthContext'
@@ -15,6 +15,15 @@ const plexMono = IBM_Plex_Mono({
 export const metadata: Metadata = {
   title: 'QRZ Ready',
   description: 'QRZ is ham radio for who is calling? -- and soon, the answer will be you. Prepare for your FCC Amateur Radio license exam with smart memorization techniques.',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'black-translucent',
+    title: 'QRZ Ready',
+  },
+}
+
+export const viewport: Viewport = {
+  themeColor: '#0e1117',
 }
 
 export default function RootLayout({

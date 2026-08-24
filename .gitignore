@@ -3,3 +3,9 @@ node_modules/
 next-env.d.ts
 .env*.local
 .env
+
+# Serwist (generated service worker output)
+public/sw.js
+public/sw.js.map
+public/swe-worker*.js
+public/swe-worker*.js.map
