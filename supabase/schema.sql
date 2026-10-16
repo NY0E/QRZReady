@@ -69,6 +69,7 @@ group by user_id;
 --   rpc_log_attempt(...) returns uuid
 --   rpc_log_pass_event(...) returns uuid
 --   rpc_delete_study_data(p_user_id text) returns void  (account deletion; added 2026-10-16)
+--   rpc_ping() returns integer  (keep-alive for the daily Vercel Cron at /api/keepalive; added 2026-10-16)
 -- See migration "switch_to_rpc_write_functions" for full definitions.
 --
 -- Why RPC instead of RLS policies on the base tables: this project's direct-
