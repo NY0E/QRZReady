@@ -68,6 +68,7 @@ group by user_id;
 --   rpc_touch_study_session_end(p_session_id uuid) returns void
 --   rpc_log_attempt(...) returns uuid
 --   rpc_log_pass_event(...) returns uuid
+--   rpc_delete_study_data(p_user_id text) returns void  (account deletion; added 2026-10-16)
 -- See migration "switch_to_rpc_write_functions" for full definitions.
 --
 -- Why RPC instead of RLS policies on the base tables: this project's direct-
@@ -77,3 +78,9 @@ group by user_id;
 -- the RPC approach sidesteps it and is arguably tighter anyway (anon can only
 -- call four whitelisted, input-validated entry points, not write arbitrary
 -- rows to these tables).
+
+-- Account deletion (migration "add_rpc_delete_study_data", 2026-10-16).
+-- Signed-out study is no longer logged (2026-10-16), so user_id is always a
+-- Firebase UID going forward. Callable by anon; it refuses anon- ids.
+-- create or replace function rpc_delete_study_data(p_user_id text) returns void
+--   security definer: deletes the user's attempts, study_sessions, pass_events.
