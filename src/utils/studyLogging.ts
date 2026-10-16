@@ -2,26 +2,25 @@ import { supabase } from '@/lib/supabase';
 import { auth } from '@/lib/firebase';
 import type { ExamType } from '@/types/exam';
 
-const ANON_ID_KEY = 'qrzready-anon-id';
+// Legacy key from when signed-out study was logged too; cleared on read.
+const LEGACY_ANON_ID_KEY = 'qrzready-anon-id';
 
-// Firebase UID when logged in, otherwise a stable per-browser id.
-// This is a plain text label in Supabase, not a real auth identity.
-export function getStudyUserId(): string {
-  const uid = auth.currentUser?.uid;
-  if (uid) return uid;
-
-  let anonId = localStorage.getItem(ANON_ID_KEY);
-  if (!anonId) {
-    anonId = `anon-${crypto.randomUUID()}`;
-    localStorage.setItem(ANON_ID_KEY, anonId);
+// Firebase UID when signed in, otherwise null. Signed-out study is never
+// logged, so it stays on the device as the privacy policy promises.
+export function getStudyUserId(): string | null {
+  try {
+    localStorage.removeItem(LEGACY_ANON_ID_KEY);
+  } catch {
+    // Storage unavailable; nothing to clear.
   }
-  return anonId;
+  return auth.currentUser?.uid ?? null;
 }
 
 // Writes go through SECURITY DEFINER RPC functions rather than direct table
 // inserts — anon has no direct table grants, only execute on these.
 export async function startStudySession(examType: ExamType): Promise<string | null> {
   const userId = getStudyUserId();
+  if (!userId) return null;
   const { data, error } = await supabase.rpc('rpc_start_study_session', {
     p_user_id: userId,
     p_exam_type: examType
@@ -62,6 +61,7 @@ interface LogAttemptParams {
 
 export async function logAttempt(params: LogAttemptParams): Promise<void> {
   const userId = getStudyUserId();
+  if (!userId) return;
   const { error } = await supabase.rpc('rpc_log_attempt', {
     p_session_id: params.sessionId,
     p_user_id: userId,
@@ -89,6 +89,7 @@ export async function logPassMilestone(params: {
   notes?: string;
 }): Promise<void> {
   const userId = getStudyUserId();
+  if (!userId) return;
   const { error } = await supabase.rpc('rpc_log_pass_event', {
     p_user_id: userId,
     p_exam_type: params.examType,
@@ -99,5 +100,16 @@ export async function logPassMilestone(params: {
 
   if (error) {
     console.error('Error logging pass milestone:', error);
+  }
+}
+
+// Called during account deletion so no study logs outlive the account.
+export async function deleteStudyData(userId: string): Promise<void> {
+  const { error } = await supabase.rpc('rpc_delete_study_data', {
+    p_user_id: userId
+  });
+
+  if (error) {
+    throw new Error('Could not delete study logs. Please try again.');
   }
 }

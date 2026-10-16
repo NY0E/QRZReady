@@ -10,7 +10,7 @@ export default function PrivacyPage() {
       <div className="max-w-3xl mx-auto px-4 py-8">
         <div className="mb-8">
           <h1 className="text-3xl font-mono font-medium text-ink mb-2">Privacy Policy</h1>
-          <p className="text-ink-mid">Last updated August 24, 2026</p>
+          <p className="text-ink-mid">Last updated October 16, 2026</p>
         </div>
 
         <div className="bg-surface rounded-lg border border-border p-6 mb-6 space-y-4 text-ink-mid">
@@ -38,8 +38,16 @@ export default function PrivacyPage() {
               browser&apos;s local storage and never leaves your device.
             </p>
             <p>
-              <strong className="text-ink">What we don&apos;t collect.</strong> QRZ Ready does not use analytics or advertising
-              trackers, does not sell data, and does not knowingly collect any information beyond what&apos;s
+              <strong className="text-ink">Study research logs.</strong> If you&apos;re signed in, each answer you give
+              in Learn mode is also logged to help us test whether the study method works: the question,
+              which answer choices were shown, the answer you picked, whether it was right, how long you
+              took, and when your study session started and stopped. These logs are labeled with your
+              account&apos;s random ID, never your email or call sign. Nothing is logged when you&apos;re not
+              signed in.
+            </p>
+            <p>
+              <strong className="text-ink">What we don&apos;t collect.</strong> QRZ Ready does not use advertising or
+              third-party analytics trackers, does not sell data, and does not knowingly collect any information beyond what&apos;s
               described above.
             </p>
           </div>
@@ -50,6 +58,7 @@ export default function PrivacyPage() {
           <ul className="list-disc list-inside space-y-2 text-ink-mid">
             <li>To create and secure your account, and let you sign in from any device</li>
             <li>To save and display your study progress and test scores</li>
+            <li>To measure whether the study method helps people learn, using the study research logs</li>
             <li>To respond if you contact us for support or a data request</li>
           </ul>
         </div>
@@ -58,8 +67,10 @@ export default function PrivacyPage() {
           <h2 className="text-xl font-mono font-medium text-ink mb-4">3. Who we share it with</h2>
           <p className="text-ink-mid">
             Account and study data is stored with Firebase (Google Cloud), which acts as our hosting
-            and infrastructure provider under Google&apos;s own privacy and data processing terms. We do
-            not share your data with any other third party, and we do not sell your data to anyone.
+            and infrastructure provider under Google&apos;s own privacy and data processing terms. Study
+            research logs are stored with Supabase, a database provider, under its own data processing
+            terms. We do not share your data with any other third party, and we do not sell your data
+            to anyone.
           </p>
         </div>
 
@@ -71,7 +82,9 @@ export default function PrivacyPage() {
               time from your{' '}
               <Link href="/account" className="text-amber hover:text-amber/80 transition-colors">Account page</Link>{' '}
               — no need to email us first. Deleting your account removes your Firebase Authentication
-              record and all study progress and scores tied to it.
+              record, all study progress and scores, and all study research logs tied to it. The
+              Download button exports your account, progress and scores; to get a copy of your study
+              research logs, email us and we&apos;ll send them.
             </p>
             <p>
               <strong className="text-ink">If you&apos;re in the EU/EEA or UK (GDPR):</strong> our legal basis for processing
@@ -103,8 +116,8 @@ export default function PrivacyPage() {
           <h2 className="text-xl font-mono font-medium text-ink mb-4">6. Data retention &amp; security</h2>
           <p className="text-ink-mid">
             We keep your account and study data for as long as your account exists, or until you
-            delete it. We rely on Firebase Authentication and Firestore&apos;s built-in security
-            controls to protect your data, but no system is 100% secure, and we can&apos;t guarantee
+            delete it. We rely on the built-in security controls of Firebase Authentication,
+            Firestore and Supabase to protect your data, but no system is 100% secure, and we can&apos;t guarantee
             absolute security.
           </p>
         </div>

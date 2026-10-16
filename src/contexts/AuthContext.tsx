@@ -15,6 +15,7 @@ import {
 } from 'firebase/auth';
 import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { auth, db } from '@/lib/firebase';
+import { deleteStudyData } from '@/utils/studyLogging';
 
 interface AuthContextType {
   user: User | null;
@@ -90,6 +91,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
     const credential = EmailAuthProvider.credential(currentUser.email, password);
     await reauthenticateWithCredential(currentUser, credential);
+
+    await deleteStudyData(currentUser.uid);
 
     const progressSnap = await getDocs(collection(db, 'users', currentUser.uid, 'progress'));
     const scoresSnap = await getDocs(collection(db, 'users', currentUser.uid, 'scores'));
